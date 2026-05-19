@@ -38,8 +38,14 @@ jobs:
             sleep 5
           done
           test -s site.zip
-          unzip -t site.zip
-          unzip -o site.zip -d .
+          python3 - <<'PY'
+          import zipfile
+          with zipfile.ZipFile('site.zip') as z:
+              bad = z.testzip()
+              if bad:
+                  raise SystemExit(f'Bad zip member: {bad}')
+              z.extractall('.')
+          PY
           rm site.zip
 
       - name: Commit generated site files
