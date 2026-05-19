@@ -27,7 +27,18 @@ jobs:
       - name: Download generated course site
         if: ${{ !hashFiles('index.html') }}
         run: |
-          curl -L --fail 'https://marble-folders-record-attractions.trycloudflare.com/ai-course-site-github-pages.zip' -o site.zip
+          set -e
+          URL='https://marble-folders-record-attractions.trycloudflare.com/ai-course-site-github-pages.zip'
+          for attempt in 1 2 3 4 5; do
+            echo "Download attempt $attempt"
+            rm -f site.zip
+            if curl -L --fail --retry 8 --retry-delay 4 --retry-all-errors --connect-timeout 20 "$URL" -o site.zip; then
+              break
+            fi
+            sleep 5
+          done
+          test -s site.zip
+          unzip -t site.zip
           unzip -o site.zip -d .
           rm site.zip
 
