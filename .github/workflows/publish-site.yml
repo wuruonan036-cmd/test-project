@@ -1,0 +1,62 @@
+name: Publish AI course site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download generated course site
+        if: ${{ !hashFiles('index.html') }}
+        run: |
+          curl -L --fail 'https://marble-folders-record-attractions.trycloudflare.com/ai-course-site-github-pages.zip' -o site.zip
+          unzip -o site.zip -d .
+          rm site.zip
+
+      - name: Commit generated site files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html assets lessons
+          if git diff --cached --quiet; then
+            echo 'No generated site changes to commit.'
+          else
+            git commit -m 'Publish AI course learning site'
+            git push
+          fi
+
+      - name: Prepare Pages artifact
+        run: |
+          rm -rf _site
+          mkdir _site
+          cp -R index.html assets lessons _site/
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
