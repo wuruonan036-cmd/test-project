@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 01 课｜AI App 和普通 App 的工程差异</title>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="lesson-page">
+<div class="reader-shell" data-page="lesson" data-lesson="1">
+  <aside class="course-sidebar">
+    <a class="brand" href="../index.html"><span>AI</span><strong>应用工程课程</strong></a>
+    <div class="sidebar-section"><p>课程导航</p><a class="lesson-link active" href="lesson-01.html" data-lesson="1"><span>01</span><strong>AI App 和普通 App 的工程差异</strong></a>
+<a class="lesson-link" href="lesson-02.html" data-lesson="2"><span>02</span><strong>基础开发词典：JS、TS、Node、React、Python、npm</strong></a>
+<a class="lesson-link" href="lesson-03.html" data-lesson="3"><span>03</span><strong>普通后端基础：API、Server、Database、Auth、Storage、Queue、Logs</strong></a>
+<a class="lesson-link" href="lesson-04.html" data-lesson="4"><span>04</span><strong>数据库与 AI 产品数据结构</strong></a>
+<a class="lesson-link" href="lesson-05.html" data-lesson="5"><span>05</span><strong>第 1 周总复盘：从普通 App 到 AI App 后端总图</strong></a>
+<a class="lesson-link" href="lesson-06.html" data-lesson="6"><span>06</span><strong>LLM API 基础：模型如何被产品调用</strong></a>
+<a class="lesson-link" href="lesson-07.html" data-lesson="7"><span>07</span><strong>Prompt Engineering：模型任务协议设计</strong></a>
+<a class="lesson-link" href="lesson-08.html" data-lesson="8"><span>08</span><strong>Structured Output：可被程序使用的结构化结果</strong></a>
+<a class="lesson-link" href="lesson-09.html" data-lesson="9"><span>09</span><strong>Context Engineering：模型本次可见信息的组织方法</strong></a>
+<a class="lesson-link" href="lesson-10.html" data-lesson="10"><span>10</span><strong>RAG / Knowledge Base：让模型使用可靠外部知识</strong></a>
+<a class="lesson-link" href="lesson-11.html" data-lesson="11"><span>11</span><strong>Memory 系统：面向未来任务的状态管理</strong></a>
+<a class="lesson-link" href="lesson-12.html" data-lesson="12"><span>12</span><strong>Tool Calling / Function Calling / MCP：从语言输出到系统动作</strong></a>
+<a class="lesson-link" href="lesson-13.html" data-lesson="13"><span>13</span><strong>Workflow vs Agent：AI 系统编排方式的边界</strong></a>
+<a class="lesson-link" href="lesson-14.html" data-lesson="14"><span>14</span><strong>Harness 工程：把模型纳入可控运行系统</strong></a>
+<a class="lesson-link" href="lesson-15.html" data-lesson="15"><span>15</span><strong>Model Selection / Model Routing：按任务选择合适模型</strong></a>
+<a class="lesson-link" href="lesson-16.html" data-lesson="16"><span>16</span><strong>Guardrails / Safety：AI 系统安全护栏</strong></a>
+<a class="lesson-link" href="lesson-17.html" data-lesson="17"><span>17</span><strong>Evals / Evaluation：将失败案例沉淀为测试集</strong></a>
+<a class="lesson-link" href="lesson-18.html" data-lesson="18"><span>18</span><strong>Observability / Tracing / Logs：让 AI 行为可回放、可解释、可定位</strong></a>
+<a class="lesson-link" href="lesson-19.html" data-lesson="19"><span>19</span><strong>Deployment / LLMOps：从 Demo 到可上线系统</strong></a>
+<a class="lesson-link" href="lesson-20.html" data-lesson="20"><span>20</span><strong>主流框架与实现参考：框架作为工程实现方式</strong></a></div>
+  </aside>
+  <main class="lesson-main">
+    <nav class="topbar">
+      <a href="../index.html">首页</a>
+      <a href="../index.html">上一课</a>
+      <a href="lesson-02.html">下一课</a>
+      <button class="complete-btn" type="button" data-complete-toggle="1">标记完成</button>
+    </nav>
+    <header class="lesson-hero">
+      <div class="lesson-kicker">第 01 课 · Week 1</div>
+      <h1>AI App 和普通 App 的工程差异</h1>
+      <p>建立 AI 应用工程的总入口，区分普通软件系统与 AI 系统在后端链路上的关键差异。</p>
+      <div class="tag-row"><span>总图</span><span>请求链路</span><span>Harness 起点</span></div>
+    </header>
+    <section class="lesson-tools">
+      <label><span>本课搜索</span><input type="search" class="page-search" placeholder="输入关键词，定位正文内容"></label>
+      <div class="font-controls" aria-label="字体大小"><button type="button" data-font="smaller">A-</button><button type="button" data-font="larger">A+</button></div>
+    </section>
+    <article class="lesson-content" id="content">
+      <section class="classroom-block">
+        <h2>课程目标</h2>
+        <p>建立 AI 应用工程的总入口，区分普通软件系统与 AI 系统在后端链路上的关键差异。</p>
+      </section>
+<h3 id="1-知识树定位">1. 知识树定位</h3>
+<p>本课在学习者的知识结构图里属于最上层的总入口：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>AI 应用工程
+├─ 基础开发层
+├─ 应用后端层
+├─ 模型交互层
+├─ 上下文 / 知识 / 记忆层
+├─ Agent / Harness 控制层
+├─ 评测与观测层
+└─ 生产化层</code></pre></div>
+<p>这一课只解决一个问题：</p>
+<blockquote><p>AI App 是一套把概率性模型能力纳入确定性软件系统的工程结构，不能简化为“前端 + 大模型 API”。</p></blockquote>
+<hr>
+<h3 id="2-基础解释-普通-app-怎么工作？">2. 基础解释：普通 App 怎么工作？</h3>
+<p>普通 App 可以先理解成一个“确定性机器”。</p>
+<p>用户点按钮，系统按预设逻辑执行。</p>
+<p>例如外卖 App：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户点“下单”
+→ 前端发请求
+→ 后端检查购物车
+→ 后端计算价格
+→ 后端创建订单
+→ 数据库保存订单
+→ 返回下单成功</code></pre></div>
+<p>这里大部分逻辑是确定的：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>同样的输入
+→ 同样的规则
+→ 大体同样的结果</code></pre></div>
+<p>这就是普通软件工程的基本特征：<strong>确定性</strong>。</p>
+<hr>
+<h3 id="3-ai-app-多了什么？">3. AI App 多了什么？</h3>
+<p>AI App 引入了能力强但结果具有概率性的模型层：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>LLM / 大语言模型</code></pre></div>
+<p>模型的特点是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>能理解自然语言
+能生成答案
+能总结
+能推理
+能调用工具
+能处理复杂上下文
+但输出并非 100% 确定</code></pre></div>
+<p>AI App 的核心工程问题包括：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>怎么让一个概率性模型，稳定地服务一个真实产品？</code></pre></div>
+<p>这就是 AI 应用工程的核心问题。</p>
+<hr>
+<h3 id="4-普通-app-请求链路">4. 普通 App 请求链路</h3>
+<p>普通 App 请求链路可以简化为：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户
+→ 前端 UI
+→ API
+→ 后端业务逻辑
+→ 数据库
+→ 返回结果
+→ 前端展示</code></pre></div>
+<p>可以画成：</p>
+<div class="code-block"><div class="code-label">mermaid</div><button class="copy-code" type="button">复制</button><pre><code>flowchart LR
+  A[用户] --&gt; B[前端 UI]
+  B --&gt; C[API 请求]
+  C --&gt; D[后端服务]
+  D --&gt; E[数据库]
+  E --&gt; D
+  D --&gt; F[返回结果]
+  F --&gt; B</code></pre></div>
+<h4 id="用学习者的语言理解">用学习者的语言理解</h4>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>前端负责“用户看到和操作什么”
+后端负责“真正做事和管规则”
+数据库负责“长期存东西”
+API 负责“前端和后端怎么说话”</code></pre></div>
+<hr>
+<h3 id="5-ai-app-请求链路">5. AI App 请求链路</h3>
+<p>AI App 多了模型和控制系统。</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户
+→ 前端 UI
+→ API
+→ 后端服务
+→ Harness 判断这次请求
+→ 读取用户状态 / 历史 / 记忆 / 知识 / 工具
+→ 组装上下文
+→ 调用模型
+→ 安全检查
+→ 返回结果
+→ 写日志 / 写记忆 / 写评测样本</code></pre></div>
+<p>可以画成：</p>
+<div class="code-block"><div class="code-label">mermaid</div><button class="copy-code" type="button">复制</button><pre><code>flowchart LR
+  A[用户输入] --&gt; B[前端 UI]
+  B --&gt; C[API 请求]
+  C --&gt; D[后端服务]
+  D --&gt; E[Harness 控制层]
+  E --&gt; F[用户状态]
+  E --&gt; G[Memory]
+  E --&gt; H[RAG / Knowledge]
+  E --&gt; I[Tools]
+  E --&gt; J[LLM]
+  J --&gt; K[Guardrails]
+  K --&gt; L[返回前端]
+  E --&gt; M[Logs / Traces / Evals]</code></pre></div>
+<hr>
+<h3 id="6-为什么需要-harness？">6. 为什么需要 Harness？</h3>
+<p>没有 Harness 的 AI App：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户输入
+→ 直接塞给模型
+→ 模型自由回答</code></pre></div>
+<p>问题是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>模型不知道用户是谁
+模型不知道产品规则
+模型不知道该不该查知识库
+模型不知道该不该读记忆
+模型不知道能不能调用工具
+模型不知道什么场景有风险
+模型输出也没有稳定评测</code></pre></div>
+<p>所以真实产品里需要 Harness。</p>
+<h3 id="harness-的一句话定义">Harness 的一句话定义</h3>
+<blockquote><p>Harness 是 AI App 的运行控制层，负责把模型、上下文、知识、记忆、工具、安全、日志组织成一次可控执行。</p></blockquote>
+<p>它不属于模型、单个 Prompt 或某个框架，而应是一套运行控制机制。</p>
+<hr>
+<h3 id="7-ai-app-比普通-app-多出的核心模块">7. AI App 比普通 App 多出的核心模块</h3>
+<div class="table-wrap"><table><thead><tr><th>模块</th><th>作用</th><th>0 基础理解</th></tr></thead><tbody><tr><td>LLM API</td><td>调用模型</td><td>将 模型 作为可调用能力</td></tr><tr><td>Prompt</td><td>告诉模型这次怎么做</td><td>任务说明书</td></tr><tr><td>Context</td><td>告诉模型这次应该看什么信息</td><td>临时资料包</td></tr><tr><td>RAG</td><td>检索外部知识</td><td>先查资料，再回答</td></tr><tr><td>Memory</td><td>使用长期用户状态</td><td>记住对未来有用的信息</td></tr><tr><td>Tool Calling</td><td>调用工具 / API / 数据库</td><td>让模型不仅会说，还能触发动作</td></tr><tr><td>Guardrails</td><td>安全边界</td><td>输入、工具、输出都要检查</td></tr><tr><td>Evals</td><td>评测</td><td>判断模型输出是否合格</td></tr><tr><td>Observability</td><td>可观测性</td><td>复盘这次为什么这样答</td></tr><tr><td>Harness</td><td>运行控制层</td><td>总调度员</td></tr></tbody></table></div>
+<hr>
+<h3 id="8-少量代码-只看结构-不要求会写">8. 少量代码：只看结构，不要求会写</h3>
+<p>下面的代码用于帮助学习者看懂模型调用的基本形态，不要求掌握编写。</p>
+<div class="code-block"><div class="code-label">ts</div><button class="copy-code" type="button">复制</button><pre><code>app.post(&quot;/api/chat&quot;, async (req, res) =&gt; {
+  const userMessage = req.body.message
+  const context = await buildContext(userMessage)
+  const modelResult = await callLLM({
+    prompt: &quot;你是一个 AI 助手&quot;,
+    userMessage,
+    context
+  })
+  await saveLog({
+    userMessage,
+    modelResult
+  })
+  res.json({
+    answer: modelResult.text
+  })
+})</code></pre></div>
+<p>只需看懂这几件事：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>/api/chat        = 前端调用的接口
+userMessage      = 用户输入
+buildContext     = 组装上下文
+callLLM          = 调模型
+saveLog          = 写日志
+res.json         = 返回给前端</code></pre></div>
+<hr>
+<h3 id="9-实战判断">9. 实战判断</h3>
+<p>后续看到 AI 产品后端方案，先问 8 个问题：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 用户请求进来后，谁判断任务类型？
+2. 模型调用前，谁组装上下文？
+3. 用户历史、记忆、知识库分别在哪里读？
+4. 哪些场景调工具，哪些场景不调？
+5. 哪些场景必须加安全检查？
+6. 模型输出失败怎么办？
+7. 每次模型调用有没有日志和 trace？
+8. 后续怎么评测和回归？</code></pre></div>
+<p>如果这些问题答不上来，这个方案大概率只是“套了个模型 API”。</p>
+<hr>
+<h3 id="10-课后复盘">10. 课后复盘</h3>
+<p>请用自己的话回答：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 普通 App 和 AI App 最大区别是什么？
+2. 为什么 AI App 不能只是“前端 + 模型 API”？
+3. Harness 解决什么问题？
+4. Context、RAG、Memory、Tool 分别解决什么问题？
+5. 一个真实 AI 请求，从用户输入到输出，大概经过哪些节点？</code></pre></div>
+<hr>
+<h3 id="11-参考资料">11. 参考资料</h3>
+<ul><li>OpenAI Agents SDK 官方文档：Agents 被描述为能够规划、调用工具、协作并保持足够状态来完成多步骤工作的应用。  </li></ul>
+<p>https://developers.openai.com/api/docs/guides/agents</p>
+<ul><li>OpenAI Agents SDK Python 文档：Agent 是配置了 instructions、tools，以及可选 runtime behavior（handoffs、guardrails、structured outputs）的 LLM。  </li></ul>
+<p>https://openai.github.io/openai-agents-python/agents/</p>
+<ul><li>Anthropic《Building Effective Agents》：从 augmented LLM 到 workflow，再到 autonomous agents，强调从简单组合模式逐步增加复杂度。  </li></ul>
+<p>https://www.anthropic.com/research/building-effective-agents</p>
+<hr>
+    </article>
+    <nav class="bottom-nav"><a href="../index.html">上一课</a><a href="../index.html">返回课程首页</a><a href="lesson-02.html">下一课</a></nav>
+  </main>
+  <aside class="toc-panel"><p>本课目录</p><a class="toc-link level-3" href="#1-知识树定位">1. 知识树定位</a>
+<a class="toc-link level-3" href="#2-基础解释-普通-app-怎么工作？">2. 基础解释：普通 App 怎么工作？</a>
+<a class="toc-link level-3" href="#3-ai-app-多了什么？">3. AI App 多了什么？</a>
+<a class="toc-link level-3" href="#4-普通-app-请求链路">4. 普通 App 请求链路</a>
+<a class="toc-link level-4" href="#用学习者的语言理解">用学习者的语言理解</a>
+<a class="toc-link level-3" href="#5-ai-app-请求链路">5. AI App 请求链路</a>
+<a class="toc-link level-3" href="#6-为什么需要-harness？">6. 为什么需要 Harness？</a>
+<a class="toc-link level-3" href="#harness-的一句话定义">Harness 的一句话定义</a>
+<a class="toc-link level-3" href="#7-ai-app-比普通-app-多出的核心模块">7. AI App 比普通 App 多出的核心模块</a>
+<a class="toc-link level-3" href="#8-少量代码-只看结构-不要求会写">8. 少量代码：只看结构，不要求会写</a>
+<a class="toc-link level-3" href="#9-实战判断">9. 实战判断</a>
+<a class="toc-link level-3" href="#10-课后复盘">10. 课后复盘</a>
+<a class="toc-link level-3" href="#11-参考资料">11. 参考资料</a></aside>
+</div>
+<script src="../assets/site.js"></script>
+</body>
+</html>

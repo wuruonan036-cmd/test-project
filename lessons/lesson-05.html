@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 05 课｜第 1 周总复盘：从普通 App 到 AI App 后端总图</title>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="lesson-page">
+<div class="reader-shell" data-page="lesson" data-lesson="5">
+  <aside class="course-sidebar">
+    <a class="brand" href="../index.html"><span>AI</span><strong>应用工程课程</strong></a>
+    <div class="sidebar-section"><p>课程导航</p><a class="lesson-link" href="lesson-01.html" data-lesson="1"><span>01</span><strong>AI App 和普通 App 的工程差异</strong></a>
+<a class="lesson-link" href="lesson-02.html" data-lesson="2"><span>02</span><strong>基础开发词典：JS、TS、Node、React、Python、npm</strong></a>
+<a class="lesson-link" href="lesson-03.html" data-lesson="3"><span>03</span><strong>普通后端基础：API、Server、Database、Auth、Storage、Queue、Logs</strong></a>
+<a class="lesson-link" href="lesson-04.html" data-lesson="4"><span>04</span><strong>数据库与 AI 产品数据结构</strong></a>
+<a class="lesson-link active" href="lesson-05.html" data-lesson="5"><span>05</span><strong>第 1 周总复盘：从普通 App 到 AI App 后端总图</strong></a>
+<a class="lesson-link" href="lesson-06.html" data-lesson="6"><span>06</span><strong>LLM API 基础：模型如何被产品调用</strong></a>
+<a class="lesson-link" href="lesson-07.html" data-lesson="7"><span>07</span><strong>Prompt Engineering：模型任务协议设计</strong></a>
+<a class="lesson-link" href="lesson-08.html" data-lesson="8"><span>08</span><strong>Structured Output：可被程序使用的结构化结果</strong></a>
+<a class="lesson-link" href="lesson-09.html" data-lesson="9"><span>09</span><strong>Context Engineering：模型本次可见信息的组织方法</strong></a>
+<a class="lesson-link" href="lesson-10.html" data-lesson="10"><span>10</span><strong>RAG / Knowledge Base：让模型使用可靠外部知识</strong></a>
+<a class="lesson-link" href="lesson-11.html" data-lesson="11"><span>11</span><strong>Memory 系统：面向未来任务的状态管理</strong></a>
+<a class="lesson-link" href="lesson-12.html" data-lesson="12"><span>12</span><strong>Tool Calling / Function Calling / MCP：从语言输出到系统动作</strong></a>
+<a class="lesson-link" href="lesson-13.html" data-lesson="13"><span>13</span><strong>Workflow vs Agent：AI 系统编排方式的边界</strong></a>
+<a class="lesson-link" href="lesson-14.html" data-lesson="14"><span>14</span><strong>Harness 工程：把模型纳入可控运行系统</strong></a>
+<a class="lesson-link" href="lesson-15.html" data-lesson="15"><span>15</span><strong>Model Selection / Model Routing：按任务选择合适模型</strong></a>
+<a class="lesson-link" href="lesson-16.html" data-lesson="16"><span>16</span><strong>Guardrails / Safety：AI 系统安全护栏</strong></a>
+<a class="lesson-link" href="lesson-17.html" data-lesson="17"><span>17</span><strong>Evals / Evaluation：将失败案例沉淀为测试集</strong></a>
+<a class="lesson-link" href="lesson-18.html" data-lesson="18"><span>18</span><strong>Observability / Tracing / Logs：让 AI 行为可回放、可解释、可定位</strong></a>
+<a class="lesson-link" href="lesson-19.html" data-lesson="19"><span>19</span><strong>Deployment / LLMOps：从 Demo 到可上线系统</strong></a>
+<a class="lesson-link" href="lesson-20.html" data-lesson="20"><span>20</span><strong>主流框架与实现参考：框架作为工程实现方式</strong></a></div>
+  </aside>
+  <main class="lesson-main">
+    <nav class="topbar">
+      <a href="../index.html">首页</a>
+      <a href="lesson-04.html">上一课</a>
+      <a href="lesson-06.html">下一课</a>
+      <button class="complete-btn" type="button" data-complete-toggle="5">标记完成</button>
+    </nav>
+    <header class="lesson-hero">
+      <div class="lesson-kicker">第 05 课 · Week 1</div>
+      <h1>第 1 周总复盘：从普通 App 到 AI App 后端总图</h1>
+      <p>把前端、后端、数据库、模型、Harness 与日志评测串成一张完整工程图。</p>
+      <div class="tag-row"><span>周复盘</span><span>系统总图</span><span>边界</span></div>
+    </header>
+    <section class="lesson-tools">
+      <label><span>本课搜索</span><input type="search" class="page-search" placeholder="输入关键词，定位正文内容"></label>
+      <div class="font-controls" aria-label="字体大小"><button type="button" data-font="smaller">A-</button><button type="button" data-font="larger">A+</button></div>
+    </section>
+    <article class="lesson-content" id="content">
+      <section class="classroom-block">
+        <h2>课程目标</h2>
+        <p>把前端、后端、数据库、模型、Harness 与日志评测串成一张完整工程图。</p>
+      </section>
+<h3 id="1-本课问题域？">1. 本课问题域？</h3>
+<p>第 1 周已经学习了 4 个基础模块：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>01 普通 App 和 AI App 的区别
+02 基础开发词典
+03 普通后端基础
+04 AI 产品数据结构</code></pre></div>
+<p>本课重点是把已有概念连接成完整链路。</p>
+<p>需要建立一张脑内地图：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户
+→ 前端
+→ API
+→ 后端
+→ 数据库
+→ 模型
+→ Harness
+→ RAG / Memory / Tools
+→ Guardrails
+→ 返回
+→ 日志
+→ 评测</code></pre></div>
+<hr>
+<h3 id="2-普通-app-的最小链路">2. 普通 App 的最小链路</h3>
+<p>普通 App 可以先理解成：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户操作
+→ 前端页面
+→ API 请求
+→ 后端服务
+→ 数据库
+→ 返回结果
+→ 前端展示</code></pre></div>
+<p>例如用户点“查看订单”：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户点击订单页
+→ 前端请求 /api/orders
+→ 后端验证登录
+→ 数据库查询订单
+→ 返回订单列表
+→ 前端展示</code></pre></div>
+<p>它的核心是确定性逻辑：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>输入比较清楚
+逻辑由代码决定
+输出相对稳定</code></pre></div>
+<hr>
+<h3 id="3-ai-app-的最小链路">3. AI App 的最小链路</h3>
+<p>AI App 多了模型，所以链路变成：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户输入
+→ 前端页面
+→ API 请求
+→ 后端服务
+→ 读取用户状态
+→ 组装上下文
+→ 调用模型
+→ 输出结果
+→ 写入消息 / 日志 / 记录
+→ 返回前端</code></pre></div>
+<p>但这还只是“裸模型调用”。</p>
+<p>真正可上线的 AI App 需要再加：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>任务识别
+风险识别
+RAG 检索
+Memory 读写
+Tool Calling
+Guardrails
+Tracing
+Evals
+Fallback</code></pre></div>
+<p>所以完整一点是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户输入
+→ 前端
+→ API
+→ 后端
+→ Harness
+   ├─ 任务识别
+   ├─ 风险识别
+   ├─ 用户状态读取
+   ├─ 上下文组装
+   ├─ RAG 检索
+   ├─ Memory 读取
+   ├─ Tool 权限判断
+   ├─ 模型路由
+   └─ 输出控制
+→ LLM
+→ Guardrails
+→ 返回前端
+→ 数据沉淀
+→ Logs / Traces / Evals</code></pre></div>
+<hr>
+<h3 id="4-为什么-ai-app-不能只是“前端-+-模型-api”？">4. 为什么 AI App 不能只是“前端 + 模型 API”？</h3>
+<p>因为模型有几个天然问题：</p>
+<div class="table-wrap"><table><thead><tr><th>问题</th><th>影响</th></tr></thead><tbody><tr><td>输入不稳定</td><td>用户表达很模糊，系统需要先判断任务</td></tr><tr><td>输出不稳定</td><td>同样问题可能得到不同答案</td></tr><tr><td>上下文有限</td><td>不能把所有历史都塞进去</td></tr><tr><td>模型会幻觉</td><td>需要 RAG、边界和检查</td></tr><tr><td>不能天然记住用户</td><td>需要 Memory 系统</td></tr><tr><td>不能随便操作外部系统</td><td>需要 Tool 权限和校验</td></tr><tr><td>难以复盘</td><td>需要 Logs / Tracing</td></tr><tr><td>难以持续优化</td><td>需要 Evals</td></tr></tbody></table></div>
+<p>AI App 后端需要承担以下控制职责：</p>
+<blockquote><p><strong>用软件工程把模型能力包进一个可控、可观测、可评测、可上线的系统里。</strong></p></blockquote>
+<hr>
+<h3 id="5-第-1-周知识点关系总图">5. 第 1 周知识点关系总图</h3>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>基础开发层
+├─ JavaScript / TypeScript / Python
+├─ React / Next.js / Vite
+├─ Node.js
+├─ npm / package.json
+└─ Git / GitHub
+普通后端层
+├─ API
+├─ Server
+├─ Database
+├─ Auth
+├─ Storage
+├─ Queue
+├─ Cache
+├─ Logs
+└─ Deployment
+AI 应用扩展层
+├─ LLM API
+├─ Prompt
+├─ Context
+├─ RAG
+├─ Memory
+├─ Tool Calling
+├─ Harness
+├─ Guardrails
+├─ Evals
+└─ Observability
+数据结构层
+├─ User
+├─ Conversation
+├─ Message
+├─ User State
+├─ Memory
+├─ Record / Card
+├─ File / Asset
+├─ Knowledge Chunk
+├─ Tool Call
+├─ Model Run
+├─ Guardrail Result
+└─ Eval Case</code></pre></div>
+<p>这就是当前阶段第一周要建立的底座。</p>
+<hr>
+<h3 id="6-用一条“ai-请求链路”重新串起来">6. 用一条“AI 请求链路”重新串起来</h3>
+<p>假设用户说：</p>
+<blockquote><p>“帮我解释一下这个检查结果。”</p></blockquote>
+<p>完整链路可以这样理解：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 前端接收用户输入和文件
+2. 前端发请求到 /api/chat 或 /api/report/explain
+3. 后端验证用户身份
+4. 后端保存文件信息
+5. 后端创建 Conversation
+6. 后端保存 Message
+7. Harness 判断任务类型：检查解释
+8. Harness 判断是否涉及高风险
+9. 读取 User State：当前阶段、历史记录
+10. 检索 Knowledge：相关检查指标知识
+11. 读取 Memory：用户偏好、历史担忧
+12. 组装 Context Pack
+13. 选择模型：解释类任务用更稳定的模型
+14. 调用 LLM
+15. 输出前做 Guardrails 检查
+16. 生成结构化 Record/Card
+17. 保存 Message 和 Model Run
+18. 返回前端展示
+19. 记录 Trace
+20. 如果出错，沉淀为 Eval Case</code></pre></div>
+<p>这就是后续所有学习的主线。</p>
+<hr>
+<h3 id="7-当前阶段应该能区分的-8-组概念">7. 当前阶段应该能区分的 8 组概念</h3>
+<h3 id="7-1-前端-vs-后端">7.1 前端 vs 后端</h3>
+<div class="table-wrap"><table><thead><tr><th>概念</th><th>作用</th></tr></thead><tbody><tr><td>前端</td><td>用户看见和操作的界面</td></tr><tr><td>后端</td><td>处理请求、数据、模型、权限、业务逻辑</td></tr></tbody></table></div>
+<hr>
+<h3 id="7-2-api-vs-database">7.2 API vs Database</h3>
+<div class="table-wrap"><table><thead><tr><th>概念</th><th>作用</th></tr></thead><tbody><tr><td>API</td><td>前后端沟通的入口</td></tr><tr><td>Database</td><td>长期存数据的地方</td></tr></tbody></table></div>
+<hr>
+<h3 id="7-3-message-vs-memory">7.3 Message vs Memory</h3>
+<div class="table-wrap"><table><thead><tr><th>概念</th><th>作用</th></tr></thead><tbody><tr><td>Message</td><td>原始对话内容</td></tr><tr><td>Memory</td><td>从历史中提取出来的长期有用状态</td></tr></tbody></table></div>
+<hr>
+<h3 id="7-4-record-card-vs-log">7.4 Record/Card vs Log</h3>
+<div class="table-wrap"><table><thead><tr><th>概念</th><th>作用</th></tr></thead><tbody><tr><td>Record/Card</td><td>给用户看的结构化业务结果</td></tr><tr><td>Log</td><td>给系统和开发看的运行记录</td></tr></tbody></table></div>
+<hr>
+<h3 id="7-5-rag-vs-database">7.5 RAG vs Database</h3>
+<div class="table-wrap"><table><thead><tr><th>概念</th><th>作用</th></tr></thead><tbody><tr><td>Database</td><td>存业务数据</td></tr><tr><td>RAG</td><td>检索外部知识给模型使用</td></tr></tbody></table></div>
+<hr>
+<h3 id="7-6-context-vs-prompt">7.6 Context vs Prompt</h3>
+<div class="table-wrap"><table><thead><tr><th>概念</th><th>作用</th></tr></thead><tbody><tr><td>Prompt</td><td>告诉模型怎么做</td></tr><tr><td>Context</td><td>告诉模型这次基于什么信息做</td></tr></tbody></table></div>
+<hr>
+<h3 id="7-7-workflow-vs-agent">7.7 Workflow vs Agent</h3>
+<div class="table-wrap"><table><thead><tr><th>概念</th><th>作用</th></tr></thead><tbody><tr><td>Workflow</td><td>人预先设计流程</td></tr><tr><td>Agent</td><td>模型动态决定步骤</td></tr></tbody></table></div>
+<hr>
+<h3 id="7-8-harness-vs-model">7.8 Harness vs Model</h3>
+<div class="table-wrap"><table><thead><tr><th>概念</th><th>作用</th></tr></thead><tbody><tr><td>Model</td><td>生成、理解、推理</td></tr><tr><td>Harness</td><td>控制模型何时、如何、基于什么、在什么边界下工作</td></tr></tbody></table></div>
+<hr>
+<h3 id="8-看代码时当前阶段只需要看懂什么？">8. 看代码时当前阶段只需要看懂什么？</h3>
+<p>当前阶段不需要细看语法。</p>
+<p>看到一个项目，先找：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>package.json：项目怎么启动、依赖什么
+src/：主要代码在哪里
+api/ 或 routes/：后端接口在哪里
+components/：前端组件在哪里
+lib/ 或 services/：模型调用、数据库调用可能在哪里
+schema.prisma 或 migrations/：数据库结构在哪里
+.env：环境变量在哪里</code></pre></div>
+<p>第一判断应聚焦于工程入口和模块关系：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>这个文件大概负责什么？
+这个模块在系统链路里处于什么位置？
+它和前端/后端/模型/数据库哪个环节有关？</code></pre></div>
+<hr>
+<h3 id="9-第一周验收问题">9. 第一周验收问题</h3>
+<p>学习者应当能独立回答：</p>
+<ol><li>普通 App 和 AI App 的最大区别是什么？</li><li>为什么 AI App 需要 Harness？</li><li>前端、API、后端、数据库分别是什么？</li><li>AI App 至少要存哪些数据？</li><li>Message、Memory、Record、Log 有什么区别？</li><li>一次用户请求从前端到模型再返回，至少经过哪些环节？</li><li>为什么上线 AI 产品前必须考虑 Logs / Tracing / Evals？</li><li>后续看技术方案时，应先检查哪些模块是否遗漏？</li></ol>
+<hr>
+<h3 id="10-第-1-周沉淀物">10. 第 1 周沉淀物</h3>
+<p>建议整理成 4 个小文件：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>01｜基础开发名词表
+02｜AI App 请求链路图
+03｜AI 产品数据对象表
+04｜第 1 周问题清单</code></pre></div>
+<p>这四个文件比单纯记忆名词更重要。</p>
+<hr>
+    </article>
+    <nav class="bottom-nav"><a href="lesson-04.html">上一课</a><a href="../index.html">返回课程首页</a><a href="lesson-06.html">下一课</a></nav>
+  </main>
+  <aside class="toc-panel"><p>本课目录</p><a class="toc-link level-3" href="#1-本课问题域？">1. 本课问题域？</a>
+<a class="toc-link level-3" href="#2-普通-app-的最小链路">2. 普通 App 的最小链路</a>
+<a class="toc-link level-3" href="#3-ai-app-的最小链路">3. AI App 的最小链路</a>
+<a class="toc-link level-3" href="#4-为什么-ai-app-不能只是“前端-+-模型-api”？">4. 为什么 AI App 不能只是“前端 + 模型 API”？</a>
+<a class="toc-link level-3" href="#5-第-1-周知识点关系总图">5. 第 1 周知识点关系总图</a>
+<a class="toc-link level-3" href="#6-用一条“ai-请求链路”重新串起来">6. 用一条“AI 请求链路”重新串起来</a>
+<a class="toc-link level-3" href="#7-当前阶段应该能区分的-8-组概念">7. 当前阶段应该能区分的 8 组概念</a>
+<a class="toc-link level-3" href="#7-1-前端-vs-后端">7.1 前端 vs 后端</a>
+<a class="toc-link level-3" href="#7-2-api-vs-database">7.2 API vs Database</a>
+<a class="toc-link level-3" href="#7-3-message-vs-memory">7.3 Message vs Memory</a>
+<a class="toc-link level-3" href="#7-4-record-card-vs-log">7.4 Record/Card vs Log</a>
+<a class="toc-link level-3" href="#7-5-rag-vs-database">7.5 RAG vs Database</a>
+<a class="toc-link level-3" href="#7-6-context-vs-prompt">7.6 Context vs Prompt</a>
+<a class="toc-link level-3" href="#7-7-workflow-vs-agent">7.7 Workflow vs Agent</a>
+<a class="toc-link level-3" href="#7-8-harness-vs-model">7.8 Harness vs Model</a>
+<a class="toc-link level-3" href="#8-看代码时当前阶段只需要看懂什么？">8. 看代码时当前阶段只需要看懂什么？</a>
+<a class="toc-link level-3" href="#9-第一周验收问题">9. 第一周验收问题</a>
+<a class="toc-link level-3" href="#10-第-1-周沉淀物">10. 第 1 周沉淀物</a></aside>
+</div>
+<script src="../assets/site.js"></script>
+</body>
+</html>

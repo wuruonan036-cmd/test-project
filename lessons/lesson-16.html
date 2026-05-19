@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 16 课｜Guardrails / Safety：AI 系统安全护栏</title>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="lesson-page">
+<div class="reader-shell" data-page="lesson" data-lesson="16">
+  <aside class="course-sidebar">
+    <a class="brand" href="../index.html"><span>AI</span><strong>应用工程课程</strong></a>
+    <div class="sidebar-section"><p>课程导航</p><a class="lesson-link" href="lesson-01.html" data-lesson="1"><span>01</span><strong>AI App 和普通 App 的工程差异</strong></a>
+<a class="lesson-link" href="lesson-02.html" data-lesson="2"><span>02</span><strong>基础开发词典：JS、TS、Node、React、Python、npm</strong></a>
+<a class="lesson-link" href="lesson-03.html" data-lesson="3"><span>03</span><strong>普通后端基础：API、Server、Database、Auth、Storage、Queue、Logs</strong></a>
+<a class="lesson-link" href="lesson-04.html" data-lesson="4"><span>04</span><strong>数据库与 AI 产品数据结构</strong></a>
+<a class="lesson-link" href="lesson-05.html" data-lesson="5"><span>05</span><strong>第 1 周总复盘：从普通 App 到 AI App 后端总图</strong></a>
+<a class="lesson-link" href="lesson-06.html" data-lesson="6"><span>06</span><strong>LLM API 基础：模型如何被产品调用</strong></a>
+<a class="lesson-link" href="lesson-07.html" data-lesson="7"><span>07</span><strong>Prompt Engineering：模型任务协议设计</strong></a>
+<a class="lesson-link" href="lesson-08.html" data-lesson="8"><span>08</span><strong>Structured Output：可被程序使用的结构化结果</strong></a>
+<a class="lesson-link" href="lesson-09.html" data-lesson="9"><span>09</span><strong>Context Engineering：模型本次可见信息的组织方法</strong></a>
+<a class="lesson-link" href="lesson-10.html" data-lesson="10"><span>10</span><strong>RAG / Knowledge Base：让模型使用可靠外部知识</strong></a>
+<a class="lesson-link" href="lesson-11.html" data-lesson="11"><span>11</span><strong>Memory 系统：面向未来任务的状态管理</strong></a>
+<a class="lesson-link" href="lesson-12.html" data-lesson="12"><span>12</span><strong>Tool Calling / Function Calling / MCP：从语言输出到系统动作</strong></a>
+<a class="lesson-link" href="lesson-13.html" data-lesson="13"><span>13</span><strong>Workflow vs Agent：AI 系统编排方式的边界</strong></a>
+<a class="lesson-link" href="lesson-14.html" data-lesson="14"><span>14</span><strong>Harness 工程：把模型纳入可控运行系统</strong></a>
+<a class="lesson-link" href="lesson-15.html" data-lesson="15"><span>15</span><strong>Model Selection / Model Routing：按任务选择合适模型</strong></a>
+<a class="lesson-link active" href="lesson-16.html" data-lesson="16"><span>16</span><strong>Guardrails / Safety：AI 系统安全护栏</strong></a>
+<a class="lesson-link" href="lesson-17.html" data-lesson="17"><span>17</span><strong>Evals / Evaluation：将失败案例沉淀为测试集</strong></a>
+<a class="lesson-link" href="lesson-18.html" data-lesson="18"><span>18</span><strong>Observability / Tracing / Logs：让 AI 行为可回放、可解释、可定位</strong></a>
+<a class="lesson-link" href="lesson-19.html" data-lesson="19"><span>19</span><strong>Deployment / LLMOps：从 Demo 到可上线系统</strong></a>
+<a class="lesson-link" href="lesson-20.html" data-lesson="20"><span>20</span><strong>主流框架与实现参考：框架作为工程实现方式</strong></a></div>
+  </aside>
+  <main class="lesson-main">
+    <nav class="topbar">
+      <a href="../index.html">首页</a>
+      <a href="lesson-15.html">上一课</a>
+      <a href="lesson-17.html">下一课</a>
+      <button class="complete-btn" type="button" data-complete-toggle="16">标记完成</button>
+    </nav>
+    <header class="lesson-hero">
+      <div class="lesson-kicker">第 16 课 · Week 4</div>
+      <h1>Guardrails / Safety：AI 系统安全护栏</h1>
+      <p>理解输入、任务、工具、输出和产品动作上的安全控制节点。</p>
+      <div class="tag-row"><span>安全</span><span>Guardrails</span><span>人工确认</span></div>
+    </header>
+    <section class="lesson-tools">
+      <label><span>本课搜索</span><input type="search" class="page-search" placeholder="输入关键词，定位正文内容"></label>
+      <div class="font-controls" aria-label="字体大小"><button type="button" data-font="smaller">A-</button><button type="button" data-font="larger">A+</button></div>
+    </section>
+    <article class="lesson-content" id="content">
+      <section class="classroom-block">
+        <h2>课程目标</h2>
+        <p>理解输入、任务、工具、输出和产品动作上的安全控制节点。</p>
+      </section>
+<h3 id="1-这一课在知识树里的位置">1. 这一课在知识树里的位置</h3>
+<p>当前阶段已经学过：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>LLM API
+→ Prompt
+→ Structured Output
+→ Context
+→ RAG
+→ Memory
+→ Tool Calling
+→ Workflow / Agent
+→ Harness
+→ Model Routing</code></pre></div>
+<p>接下来要补的是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>AI 系统能做事了之后，怎么避免它做错事、乱做事、越界做事？</code></pre></div>
+<p>这就是 <strong>Guardrails / Safety</strong>。</p>
+<p>它属于：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Harness 控制层
+└─ 安全控制
+   ├─ Input Guardrails
+   ├─ Output Guardrails
+   ├─ Tool Guardrails
+   ├─ Policy Check
+   ├─ Human Review
+   └─ Fallback / Refusal / Safe Completion</code></pre></div>
+<h3 id="2-先建立一个底层理解">2. 先建立一个底层理解</h3>
+<p>很多人会把 Guardrails 理解成：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>敏感词过滤</code></pre></div>
+<p>这个理解太窄。</p>
+<p>真正的 Guardrails 是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>在 AI 系统的关键节点上，对输入、任务、工具、输出、动作进行检查和约束。</code></pre></div>
+<p>也就是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>不仅检查用户输入内容
+核心是检查：
+用户输入能不能处理
+这是什么风险等级
+模型能不能调用这个工具
+工具参数是否合法
+模型输出能不能展示
+是否需要人工确认
+是否需要拒绝或降级</code></pre></div>
+<h3 id="3-guardrails-放在哪些节点？">3. Guardrails 放在哪些节点？</h3>
+<p>最少有 5 个节点。</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户输入
+→ Input Guard
+→ 任务识别 / 风险识别
+→ Tool Guard
+→ 模型生成
+→ Output Guard
+→ 产品动作执行前检查
+→ 返回用户 / 写入系统</code></pre></div>
+<h4 id="3-1-input-guardrails">3.1 Input Guardrails</h4>
+<p>检查用户输入。</p>
+<p>它回答：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>这个输入是否能处理？
+是否存在高风险？
+是否需要进入特殊流程？
+是否需要拒绝？
+是否需要转人工或建议专业帮助？</code></pre></div>
+<p>例子：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户输入：我现在剧烈腹痛，还出血了，怎么办？</code></pre></div>
+<p>这类场景需要先识别风险，再决定是否进入常规回复流程。</p>
+<h4 id="3-2-task-risk-classification">3.2 Task / Risk Classification</h4>
+<p>这一步一般属于 Harness。</p>
+<p>它回答：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>这是闲聊？
+是知识问答？
+是医学风险？
+是心理危机？
+是文件理解？
+是工具任务？</code></pre></div>
+<p>注意：这一步不一定只靠 LLM，可以是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>规则 + 分类模型 + LLM 判断 + 关键词 + 用户状态</code></pre></div>
+<h4 id="3-3-tool-guardrails">3.3 Tool Guardrails</h4>
+<p>检查模型是否可以调用某个工具。</p>
+<p>例子：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>模型想调用 send_family_message 工具</code></pre></div>
+<p>系统必须检查：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户是否授权？
+收件人是否合法？
+内容是否涉及隐私？
+是否需要二次确认？
+是否允许自动发送，还是只能生成草稿？</code></pre></div>
+<p>Tool Guardrails 非常重要，因为工具调用会产生真实后果。</p>
+<h4 id="3-4-output-guardrails">3.4 Output Guardrails</h4>
+<p>检查模型生成的内容能不能展示给用户。</p>
+<p>它回答：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>有没有越界建议？
+有没有不确定却装确定？
+有没有医疗诊断倾向？
+有没有错误承诺？
+有没有隐私泄露？
+有没有不该强化的表达？</code></pre></div>
+<h4 id="3-5-action-guardrails">3.5 Action Guardrails</h4>
+<p>检查模型输出之后的产品动作。</p>
+<p>比如：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>是否写入记忆？
+是否生成提醒？
+是否创建空间记录？
+是否发送给家人？
+是否调用外部服务？</code></pre></div>
+<p>模型说“可以写入记忆”不代表系统就一定写。最终应该由代码规则和权限策略决定。</p>
+<h3 id="4-guardrails-和-harness-的关系">4. Guardrails 和 Harness 的关系</h3>
+<p>Guardrails 通常由 Harness 调用，不应作为孤立模块理解。</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Harness 决定流程
+Guardrails 检查边界</code></pre></div>
+<p>一次完整请求里，Harness 可能这样工作：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 接收用户输入
+2. 调 Input Guard
+3. 做任务分类
+4. 加载用户状态
+5. 组装 Context
+6. 决定模型和工具
+7. 调 Tool Guard
+8. 调模型
+9. 调 Output Guard
+10. 决定是否写记录 / 写记忆 / 触发回访
+11. 写日志和 trace</code></pre></div>
+<p>所以后续看任何 AI 架构时，要问：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>它的 Guardrails 是放在 Harness 里的，还是只是在 Prompt 里写了一句“不要乱说”？</code></pre></div>
+<p>只靠 Prompt 约束安全，通常不够。</p>
+<h3 id="5-少量代码-只需看懂结构">5. 少量代码：只需看懂结构</h3>
+<p>下面的代码用于定位工程位置，不要求编写。</p>
+<div class="code-block"><div class="code-label">ts</div><button class="copy-code" type="button">复制</button><pre><code>async function handleUserMessage(userId: string, message: string) {
+  const inputCheck = await runInputGuard(message)
+  if (inputCheck.blocked) {
+    return inputCheck.safeReply
+  }
+  const task = await classifyTask(message)
+  const context = await buildContext(userId, task)
+  const modelOutput = await callModel({
+    task,
+    context,
+    message
+  })
+  const outputCheck = await runOutputGuard(modelOutput)
+  if (!outputCheck.safe) {
+    return outputCheck.fallbackReply
+  }
+  await saveLog({ userId, task, inputCheck, outputCheck })
+  return modelOutput
+}</code></pre></div>
+<p>只需看懂：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>runInputGuard = 输入前检查
+classifyTask = 任务分类
+buildContext = 上下文组装
+callModel = 调模型
+runOutputGuard = 输出后检查
+saveLog = 留痕</code></pre></div>
+<h3 id="6-常见误区">6. 常见误区</h3>
+<h4 id="误区-1-把-guardrails-写进-prompt-就够了">误区 1：把 Guardrails 写进 Prompt 就够了</h4>
+<p>不够。Prompt 是软约束，工程系统需要硬约束。</p>
+<h4 id="误区-2-只检查输入-不检查工具">误区 2：只检查输入，不检查工具</h4>
+<p>工具调用最危险，因为它会产生真实动作。</p>
+<h4 id="误区-3-只检查输出文本-不检查产品动作">误区 3：只检查输出文本，不检查产品动作</h4>
+<p>例如“写入记忆”“发送消息”“创建提醒”这些动作也要检查。</p>
+<h4 id="误区-4-所有问题都让模型判断风险">误区 4：所有问题都让模型判断风险</h4>
+<p>高风险领域不能完全依赖模型自由判断。应该有规则、阈值、分类器、人工确认和 fallback。</p>
+<h3 id="7-学习者需要形成的判断表">7. 学习者需要形成的判断表</h3>
+<div class="table-wrap"><table><thead><tr><th>问题</th><th>是否需要 Guardrails</th><th>为什么</th></tr></thead><tbody><tr><td>普通闲聊</td><td>中</td><td>防止越界、攻击、隐私问题</td></tr><tr><td>医疗相关问题</td><td>高</td><td>不能替代医生，不能误导</td></tr><tr><td>心理危机表达</td><td>极高</td><td>需要特殊安全流程</td></tr><tr><td>记忆写入</td><td>高</td><td>涉及隐私和长期影响</td></tr><tr><td>家庭分享</td><td>高</td><td>涉及第三方和隐私授权</td></tr><tr><td>工具调用</td><td>高</td><td>可能产生真实动作</td></tr><tr><td>生成摘要标题</td><td>低-中</td><td>主要防止误导和泄露</td></tr></tbody></table></div>
+<h3 id="8-参考资料">8. 参考资料</h3>
+<h4 id="资料-1-openai-agents-sdk-guardrails">资料 1：OpenAI Agents SDK Guardrails</h4>
+<p>重点看：Input guardrails、Output guardrails、Tool guardrails 的位置。</p>
+<h4 id="资料-2-openai-agents-guardrails-and-human-review">资料 2：OpenAI Agents Guardrails and Human Review</h4>
+<p>重点看：为什么 tool guardrails 不能只依赖 agent-level guardrails。</p>
+<h4 id="资料-3-openai-agents-指南">资料 3：OpenAI Agents 指南</h4>
+<p>重点看：agents、tools、guardrails、human review、tracing 是如何组合成工程系统的。</p>
+<h3 id="9-课后复盘">9. 课后复盘</h3>
+<p>学习者需要能回答：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. Guardrails 和敏感词过滤有什么区别？
+2. Input Guard、Output Guard、Tool Guard 分别检查什么？
+3. 为什么工具调用前必须有 guardrails？
+4. 为什么只靠 Prompt 做安全不够？
+5. 在一个 AI App 中，哪些产品动作也应该被检查？</code></pre></div>
+<hr>
+    </article>
+    <nav class="bottom-nav"><a href="lesson-15.html">上一课</a><a href="../index.html">返回课程首页</a><a href="lesson-17.html">下一课</a></nav>
+  </main>
+  <aside class="toc-panel"><p>本课目录</p><a class="toc-link level-3" href="#1-这一课在知识树里的位置">1. 这一课在知识树里的位置</a>
+<a class="toc-link level-3" href="#2-先建立一个底层理解">2. 先建立一个底层理解</a>
+<a class="toc-link level-3" href="#3-guardrails-放在哪些节点？">3. Guardrails 放在哪些节点？</a>
+<a class="toc-link level-4" href="#3-1-input-guardrails">3.1 Input Guardrails</a>
+<a class="toc-link level-4" href="#3-2-task-risk-classification">3.2 Task / Risk Classification</a>
+<a class="toc-link level-4" href="#3-3-tool-guardrails">3.3 Tool Guardrails</a>
+<a class="toc-link level-4" href="#3-4-output-guardrails">3.4 Output Guardrails</a>
+<a class="toc-link level-4" href="#3-5-action-guardrails">3.5 Action Guardrails</a>
+<a class="toc-link level-3" href="#4-guardrails-和-harness-的关系">4. Guardrails 和 Harness 的关系</a>
+<a class="toc-link level-3" href="#5-少量代码-只需看懂结构">5. 少量代码：只需看懂结构</a>
+<a class="toc-link level-3" href="#6-常见误区">6. 常见误区</a>
+<a class="toc-link level-4" href="#误区-1-把-guardrails-写进-prompt-就够了">误区 1：把 Guardrails 写进 Prompt 就够了</a>
+<a class="toc-link level-4" href="#误区-2-只检查输入-不检查工具">误区 2：只检查输入，不检查工具</a>
+<a class="toc-link level-4" href="#误区-3-只检查输出文本-不检查产品动作">误区 3：只检查输出文本，不检查产品动作</a>
+<a class="toc-link level-4" href="#误区-4-所有问题都让模型判断风险">误区 4：所有问题都让模型判断风险</a>
+<a class="toc-link level-3" href="#7-学习者需要形成的判断表">7. 学习者需要形成的判断表</a>
+<a class="toc-link level-3" href="#8-参考资料">8. 参考资料</a>
+<a class="toc-link level-4" href="#资料-1-openai-agents-sdk-guardrails">资料 1：OpenAI Agents SDK Guardrails</a>
+<a class="toc-link level-4" href="#资料-2-openai-agents-guardrails-and-human-review">资料 2：OpenAI Agents Guardrails and Human Review</a>
+<a class="toc-link level-4" href="#资料-3-openai-agents-指南">资料 3：OpenAI Agents 指南</a>
+<a class="toc-link level-3" href="#9-课后复盘">9. 课后复盘</a></aside>
+</div>
+<script src="../assets/site.js"></script>
+</body>
+</html>

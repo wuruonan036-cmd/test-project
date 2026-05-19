@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 09 课｜Context Engineering：模型本次可见信息的组织方法</title>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="lesson-page">
+<div class="reader-shell" data-page="lesson" data-lesson="9">
+  <aside class="course-sidebar">
+    <a class="brand" href="../index.html"><span>AI</span><strong>应用工程课程</strong></a>
+    <div class="sidebar-section"><p>课程导航</p><a class="lesson-link" href="lesson-01.html" data-lesson="1"><span>01</span><strong>AI App 和普通 App 的工程差异</strong></a>
+<a class="lesson-link" href="lesson-02.html" data-lesson="2"><span>02</span><strong>基础开发词典：JS、TS、Node、React、Python、npm</strong></a>
+<a class="lesson-link" href="lesson-03.html" data-lesson="3"><span>03</span><strong>普通后端基础：API、Server、Database、Auth、Storage、Queue、Logs</strong></a>
+<a class="lesson-link" href="lesson-04.html" data-lesson="4"><span>04</span><strong>数据库与 AI 产品数据结构</strong></a>
+<a class="lesson-link" href="lesson-05.html" data-lesson="5"><span>05</span><strong>第 1 周总复盘：从普通 App 到 AI App 后端总图</strong></a>
+<a class="lesson-link" href="lesson-06.html" data-lesson="6"><span>06</span><strong>LLM API 基础：模型如何被产品调用</strong></a>
+<a class="lesson-link" href="lesson-07.html" data-lesson="7"><span>07</span><strong>Prompt Engineering：模型任务协议设计</strong></a>
+<a class="lesson-link" href="lesson-08.html" data-lesson="8"><span>08</span><strong>Structured Output：可被程序使用的结构化结果</strong></a>
+<a class="lesson-link active" href="lesson-09.html" data-lesson="9"><span>09</span><strong>Context Engineering：模型本次可见信息的组织方法</strong></a>
+<a class="lesson-link" href="lesson-10.html" data-lesson="10"><span>10</span><strong>RAG / Knowledge Base：让模型使用可靠外部知识</strong></a>
+<a class="lesson-link" href="lesson-11.html" data-lesson="11"><span>11</span><strong>Memory 系统：面向未来任务的状态管理</strong></a>
+<a class="lesson-link" href="lesson-12.html" data-lesson="12"><span>12</span><strong>Tool Calling / Function Calling / MCP：从语言输出到系统动作</strong></a>
+<a class="lesson-link" href="lesson-13.html" data-lesson="13"><span>13</span><strong>Workflow vs Agent：AI 系统编排方式的边界</strong></a>
+<a class="lesson-link" href="lesson-14.html" data-lesson="14"><span>14</span><strong>Harness 工程：把模型纳入可控运行系统</strong></a>
+<a class="lesson-link" href="lesson-15.html" data-lesson="15"><span>15</span><strong>Model Selection / Model Routing：按任务选择合适模型</strong></a>
+<a class="lesson-link" href="lesson-16.html" data-lesson="16"><span>16</span><strong>Guardrails / Safety：AI 系统安全护栏</strong></a>
+<a class="lesson-link" href="lesson-17.html" data-lesson="17"><span>17</span><strong>Evals / Evaluation：将失败案例沉淀为测试集</strong></a>
+<a class="lesson-link" href="lesson-18.html" data-lesson="18"><span>18</span><strong>Observability / Tracing / Logs：让 AI 行为可回放、可解释、可定位</strong></a>
+<a class="lesson-link" href="lesson-19.html" data-lesson="19"><span>19</span><strong>Deployment / LLMOps：从 Demo 到可上线系统</strong></a>
+<a class="lesson-link" href="lesson-20.html" data-lesson="20"><span>20</span><strong>主流框架与实现参考：框架作为工程实现方式</strong></a></div>
+  </aside>
+  <main class="lesson-main">
+    <nav class="topbar">
+      <a href="../index.html">首页</a>
+      <a href="lesson-08.html">上一课</a>
+      <a href="lesson-10.html">下一课</a>
+      <button class="complete-btn" type="button" data-complete-toggle="9">标记完成</button>
+    </nav>
+    <header class="lesson-hero">
+      <div class="lesson-kicker">第 09 课 · Week 2</div>
+      <h1>Context Engineering：模型本次可见信息的组织方法</h1>
+      <p>学习 Context Pack 的组成、来源、选择、压缩、隔离与优先级策略。</p>
+      <div class="tag-row"><span>Context</span><span>上下文组装</span><span>信息选择</span></div>
+    </header>
+    <section class="lesson-tools">
+      <label><span>本课搜索</span><input type="search" class="page-search" placeholder="输入关键词，定位正文内容"></label>
+      <div class="font-controls" aria-label="字体大小"><button type="button" data-font="smaller">A-</button><button type="button" data-font="larger">A+</button></div>
+    </section>
+    <article class="lesson-content" id="content">
+      <section class="classroom-block">
+        <h2>课程目标</h2>
+        <p>学习 Context Pack 的组成、来源、选择、压缩、隔离与优先级策略。</p>
+      </section>
+<h3 id="1-课程目标">1. 课程目标</h3>
+<p>学完这一课，需要能回答：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 什么是 Context？
+2. Context 和 Prompt 的区别是什么？
+3. 为什么不能把所有历史都塞给模型？
+4. Context Pack 是什么？
+5. RAG、Memory、Tool Result、User State 怎么进入 Context？
+6. Context Engineering 为什么是 AI 应用工程核心？</code></pre></div>
+<hr>
+<h3 id="2-定义">2. 定义</h3>
+<p><strong>Context Engineering</strong> 是为模型这一次任务选择、组织、压缩和注入最有用信息的工程能力。</p>
+<p>更直白地说：</p>
+<blockquote><p>Context Engineering 解决的是：模型这一次到底应该看见什么。</p></blockquote>
+<hr>
+<h3 id="3-context-并非-prompt">3. Context 并非 Prompt</h3>
+<p>很多人会把 Context 和 Prompt 混在一起。</p>
+<div class="table-wrap"><table><thead><tr><th>概念</th><th>本质</th><th>例子</th></tr></thead><tbody><tr><td>Prompt</td><td>任务规则</td><td>“请总结用户本次上传报告的重点”</td></tr><tr><td>Context</td><td>任务材料</td><td>用户上传的报告、孕周、历史检查记录、相关知识片段</td></tr><tr><td>Output Schema</td><td>结果格式</td><td>summary、risk_level、doctor_questions</td></tr></tbody></table></div>
+<p>一句话：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Prompt 规定怎么做。
+Context 提供用什么信息做。</code></pre></div>
+<hr>
+<h3 id="4-为什么不能把所有历史都塞进去？">4. 为什么不能把所有历史都塞进去？</h3>
+<p>因为模型上下文窗口有限，而且信息越多不一定越好。</p>
+<p>把所有信息都塞进去会导致：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 成本变高
+2. 速度变慢
+3. 重要信息被稀释
+4. 旧信息干扰新任务
+5. 隐私和安全风险增加
+6. 模型更容易抓错重点</code></pre></div>
+<p>Context Engineering 的目标是筛选最小充分信息，而并非尽可能堆叠材料：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>给模型最小充分信息。</code></pre></div>
+<hr>
+<h3 id="5-context-pack-是什么？">5. Context Pack 是什么？</h3>
+<p>可以把 <strong>Context Pack</strong> 理解成：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>这一次模型调用前，后端为模型打包的一份任务材料包。</code></pre></div>
+<p>一个 Context Pack 通常包括：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 当前用户输入
+2. 当前页面入口
+3. 当前用户状态
+4. 最近对话摘要
+5. 相关长期记忆
+6. RAG 检索结果
+7. 工具返回结果
+8. 安全边界提示
+9. 输出格式要求</code></pre></div>
+<p>注意：不同任务的 Context Pack 不一样。</p>
+<hr>
+<h3 id="6-context-pack-示例">6. Context Pack 示例</h3>
+<p>假设用户说：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>“我上次那个指标是否还要问医生？”</code></pre></div>
+<p>模型如果只看到这句话，很难回答。</p>
+<p>后端需要组装 Context Pack：</p>
+<div class="code-block"><div class="code-label">json</div><button class="copy-code" type="button">复制</button><pre><code>{
+  &quot;current_input&quot;: &quot;我上次那个指标是否还要问医生？&quot;,
+  &quot;page_entry&quot;: &quot;companion_chat&quot;,
+  &quot;user_state&quot;: {
+    &quot;stage&quot;: &quot;pregnancy_second_trimester&quot;,
+    &quot;week&quot;: 22
+  },
+  &quot;recent_summary&quot;: &quot;用户上次上传过一份唐筛相关检查结果，并担心其中一个指标偏高。&quot;,
+  &quot;relevant_records&quot;: [
+    &quot;2026-05-10 检查记录：指标 A 略高，已建议下次产检询问医生。&quot;
+  ],
+  &quot;relevant_memory&quot;: [
+    &quot;用户倾向于先知道重点，再看详细解释。&quot;
+  ],
+  &quot;safety_notes&quot;: [
+    &quot;不要替代医生诊断。&quot;,
+    &quot;如果检查指标异常，应建议用户带报告咨询医生。&quot;
+  ]
+}</code></pre></div>
+<p>这才是模型能稳定回答的基础。</p>
+<hr>
+<h3 id="7-context-来源有哪些？">7. Context 来源有哪些？</h3>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 当前输入：用户这次说的话、上传的图片、语音转写
+2. 会话上下文：当前多轮对话里发生了什么
+3. 用户状态：阶段、偏好、基础资料、权限
+4. 业务数据：检查记录、提醒、任务、空间内容
+5. RAG 结果：从知识库检索出来的片段
+6. Memory：长期偏好、重要事件、用户画像
+7. Tool Result：工具调用返回的数据
+8. 安全规则：风险边界、不能说什么
+9. 页面入口：从哪个页面触发这次请求</code></pre></div>
+<hr>
+<h3 id="8-context-engineering-在请求链路中的位置">8. Context Engineering 在请求链路中的位置</h3>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户输入
+→ Harness 判断任务类型
+→ 读取用户状态
+→ 检索 Memory
+→ 检索 RAG
+→ 调用必要工具
+→ 组装 Context Pack
+→ 选择 Prompt
+→ 调模型
+→ 结构化输出
+→ 安全检查
+→ 返回结果</code></pre></div>
+<p>Context 是模型调用前的重要准备工作，而并非后补材料。</p>
+<hr>
+<h3 id="9-context-和-memory-的区别">9. Context 和 Memory 的区别</h3>
+<div class="table-wrap"><table><thead><tr><th>概念</th><th>本质</th><th>示例</th></tr></thead><tbody><tr><td>Memory</td><td>长期可复用的用户状态</td><td>用户偏好、长期担忧、历史事件</td></tr><tr><td>Context</td><td>本次模型调用要看的信息包</td><td>当前输入 + 相关记忆 + RAG + 工具结果</td></tr></tbody></table></div>
+<p>Memory 是仓库。 Context 是这次从仓库里拿出来的材料包。</p>
+<hr>
+<h3 id="10-context-和-rag-的区别">10. Context 和 RAG 的区别</h3>
+<div class="table-wrap"><table><thead><tr><th>概念</th><th>本质</th></tr></thead><tbody><tr><td>RAG</td><td>从外部知识库检索相关知识</td></tr><tr><td>Context</td><td>把所有本次需要的信息组织进模型输入</td></tr></tbody></table></div>
+<p>RAG 是 Context 的一个来源。 Context 不等于 RAG。</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Context = 当前输入 + 用户状态 + 历史摘要 + Memory + RAG + Tool Result + Safety Notes</code></pre></div>
+<hr>
+<h3 id="11-context-和-tool-result-的关系">11. Context 和 Tool Result 的关系</h3>
+<p>工具调用可能发生在模型前，也可能发生在模型中间。</p>
+<p>例如：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户问：“我下次产检是哪天？”
+→ 后端调用数据库工具查询日程
+→ 得到 Tool Result：“下次产检是 6 月 12 日”
+→ 把结果放进 Context
+→ 模型生成自然语言回复</code></pre></div>
+<p>Tool Result 也会成为 Context 的一部分。</p>
+<hr>
+<h3 id="12-少量代码-只看结构">12. 少量代码：只看结构</h3>
+<div class="code-block"><div class="code-label">ts</div><button class="copy-code" type="button">复制</button><pre><code>const contextPack = {
+  userInput,
+  userProfile,
+  recentConversationSummary,
+  relevantMemories,
+  retrievedKnowledge,
+  safetyRules,
+};
+const response = await model.generate({
+  prompt: selectedPrompt,
+  context: contextPack,
+});</code></pre></div>
+<p>只需看懂：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>contextPack 是这次模型调用前准备好的材料包
+selectedPrompt 是任务说明
+model.generate 是模型调用</code></pre></div>
+<hr>
+<h3 id="13-context-engineering-的常见策略">13. Context Engineering 的常见策略</h3>
+<h4 id="13-1-选择-select">13.1 选择 Select</h4>
+<p>只选择和本次任务相关的信息。</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户问检查结果 → 选检查记录、医学知识、风险边界
+用户闲聊情绪 → 选最近对话、偏好记忆、陪伴风格
+用户问历史事件 → 选相关空间记录和长期记忆</code></pre></div>
+<hr>
+<h4 id="13-2-压缩-compress">13.2 压缩 Compress</h4>
+<p>长对话不能全放，要压缩成摘要。</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>最近 20 轮对话 → 200 字摘要
+三份检查记录 → 关键指标列表
+用户长期偏好 → 3 条记忆</code></pre></div>
+<hr>
+<h4 id="13-3-隔离-isolate">13.3 隔离 Isolate</h4>
+<p>不同类型信息不要混在一起。</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户输入
+用户状态
+历史摘要
+记忆
+知识库结果
+安全规则
+输出格式</code></pre></div>
+<p>分区清楚，模型更不容易混乱。</p>
+<hr>
+<h4 id="13-4-优先级排序-prioritize">13.4 优先级排序 Prioritize</h4>
+<p>不同 Context 的重要性不同。</p>
+<p>建议优先级：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 当前输入
+2. 安全规则
+3. 用户状态
+4. 最近相关上下文
+5. 业务数据
+6. 长期记忆
+7. RAG 知识片段
+8. 低优先级历史信息</code></pre></div>
+<hr>
+<h4 id="13-5-过期和冲突处理">13.5 过期和冲突处理</h4>
+<p>Context 里经常会有旧信息。</p>
+<p>例如：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>旧记忆：用户孕 18 周
+新资料：用户现在孕 24 周</code></pre></div>
+<p>系统必须知道：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>新状态优先于旧记忆。
+结构化资料优先于聊天推测。
+用户显式修改优先于系统自动推断。</code></pre></div>
+<hr>
+<h3 id="14-实战判断-一个-context-pack-好不好-看-5-点">14. 实战判断：一个 Context Pack 好不好，看 5 点</h3>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 是否只包含本次任务需要的信息
+2. 是否区分了用户输入、业务数据、记忆、知识和安全规则
+3. 是否删除了过期或低相关信息
+4. 是否把高风险规则放在足够高优先级
+5. 是否能被日志记录和回放</code></pre></div>
+<hr>
+<h3 id="15-权威资料">15. 权威资料</h3>
+<ol><li>Anthropic Effective Context Engineering for AI Agents  </li></ol>
+<p>https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents</p>
+<ol><li>OpenAI Agents SDK Context Management  </li></ol>
+<p>https://developers.openai.com/api/docs/guides/agents</p>
+<ol><li>OpenAI Agents Python Context  </li></ol>
+<p>https://openai.github.io/openai-agents-python/context/</p>
+<ol><li>OpenAI GPT-4.1 Prompting Guide  </li></ol>
+<p>https://developers.openai.com/cookbook/examples/gpt4-1_prompting_guide</p>
+<hr>
+<h3 id="16-课后复盘">16. 课后复盘</h3>
+<p>请用自己的话回答：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. Context 和 Prompt 的区别是什么？
+2. 为什么不能把所有历史都塞给模型？
+3. Context Pack 通常包含哪些信息？
+4. Memory、RAG、Tool Result 分别如何进入 Context？
+5. 什么叫“最小充分信息”？</code></pre></div>
+<hr>
+<h3 id="17-学习产出">17. 学习产出</h3>
+<p>请沉淀一个文件：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Context Pack 模板.md</code></pre></div>
+<p>建议结构：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code># Context Pack 模板
+## 任务类型
+例如：report_explanation / companion_chat / doctor_question_list
+## 当前输入
+用户这次说了什么
+## 页面入口
+从哪个页面触发
+## 用户状态
+阶段、时间、权限、基础资料
+## 最近会话摘要
+只保留和本次相关的摘要
+## 相关业务数据
+检查记录、提醒、空间内容等
+## 相关记忆
+偏好、长期担忧、重要事件
+## RAG 结果
+知识库检索片段
+## Tool Result
+工具返回结果
+## Safety Notes
+安全规则和边界
+## Output Schema
+需要输出什么结构</code></pre></div>
+<hr>
+<h3 id="阶段复盘">阶段复盘</h3>
+<p>这三课连起来，要形成一个稳定理解：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Prompt Engineering：定义任务怎么做
+Structured Output：定义结果怎么交付
+Context Engineering：定义模型这次拿什么信息做</code></pre></div>
+<p>真实 AI 产品的模型调用，不应该是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户输入 → 一个大 Prompt → 模型回复</code></pre></div>
+<p>而应该是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户输入
+→ Harness 判断任务
+→ 选择 Prompt
+→ 组装 Context Pack
+→ 规定 Structured Output
+→ 模型生成
+→ 系统解析
+→ 安全检查
+→ 产品动作
+→ 日志与评测</code></pre></div>
+<hr>
+<h2 id="本阶段核心判断">本阶段核心判断</h2>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. Prompt 并非全部。
+2. Context 往往比 Prompt 更影响结果。
+3. Structured Output 是 AI 结果进入产品系统的桥。
+4. Harness 的核心工作之一，就是管理 Prompt、Context 和 Output。
+5. 这三者必须和日志、评测、安全、数据结构连接，否则只是 Demo。</code></pre></div>
+<hr>
+    </article>
+    <nav class="bottom-nav"><a href="lesson-08.html">上一课</a><a href="../index.html">返回课程首页</a><a href="lesson-10.html">下一课</a></nav>
+  </main>
+  <aside class="toc-panel"><p>本课目录</p><a class="toc-link level-3" href="#1-课程目标">1. 课程目标</a>
+<a class="toc-link level-3" href="#2-定义">2. 定义</a>
+<a class="toc-link level-3" href="#3-context-并非-prompt">3. Context 并非 Prompt</a>
+<a class="toc-link level-3" href="#4-为什么不能把所有历史都塞进去？">4. 为什么不能把所有历史都塞进去？</a>
+<a class="toc-link level-3" href="#5-context-pack-是什么？">5. Context Pack 是什么？</a>
+<a class="toc-link level-3" href="#6-context-pack-示例">6. Context Pack 示例</a>
+<a class="toc-link level-3" href="#7-context-来源有哪些？">7. Context 来源有哪些？</a>
+<a class="toc-link level-3" href="#8-context-engineering-在请求链路中的位置">8. Context Engineering 在请求链路中的位置</a>
+<a class="toc-link level-3" href="#9-context-和-memory-的区别">9. Context 和 Memory 的区别</a>
+<a class="toc-link level-3" href="#10-context-和-rag-的区别">10. Context 和 RAG 的区别</a>
+<a class="toc-link level-3" href="#11-context-和-tool-result-的关系">11. Context 和 Tool Result 的关系</a>
+<a class="toc-link level-3" href="#12-少量代码-只看结构">12. 少量代码：只看结构</a>
+<a class="toc-link level-3" href="#13-context-engineering-的常见策略">13. Context Engineering 的常见策略</a>
+<a class="toc-link level-4" href="#13-1-选择-select">13.1 选择 Select</a>
+<a class="toc-link level-4" href="#13-2-压缩-compress">13.2 压缩 Compress</a>
+<a class="toc-link level-4" href="#13-3-隔离-isolate">13.3 隔离 Isolate</a>
+<a class="toc-link level-4" href="#13-4-优先级排序-prioritize">13.4 优先级排序 Prioritize</a>
+<a class="toc-link level-4" href="#13-5-过期和冲突处理">13.5 过期和冲突处理</a>
+<a class="toc-link level-3" href="#14-实战判断-一个-context-pack-好不好-看-5-点">14. 实战判断：一个 Context Pack 好不好，看 5 点</a>
+<a class="toc-link level-3" href="#15-权威资料">15. 权威资料</a>
+<a class="toc-link level-3" href="#16-课后复盘">16. 课后复盘</a>
+<a class="toc-link level-3" href="#17-学习产出">17. 学习产出</a>
+<a class="toc-link level-3" href="#阶段复盘">阶段复盘</a>
+<a class="toc-link level-2" href="#本阶段核心判断">本阶段核心判断</a></aside>
+</div>
+<script src="../assets/site.js"></script>
+</body>
+</html>

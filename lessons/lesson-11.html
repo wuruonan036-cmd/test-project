@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 11 课｜Memory 系统：面向未来任务的状态管理</title>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="lesson-page">
+<div class="reader-shell" data-page="lesson" data-lesson="11">
+  <aside class="course-sidebar">
+    <a class="brand" href="../index.html"><span>AI</span><strong>应用工程课程</strong></a>
+    <div class="sidebar-section"><p>课程导航</p><a class="lesson-link" href="lesson-01.html" data-lesson="1"><span>01</span><strong>AI App 和普通 App 的工程差异</strong></a>
+<a class="lesson-link" href="lesson-02.html" data-lesson="2"><span>02</span><strong>基础开发词典：JS、TS、Node、React、Python、npm</strong></a>
+<a class="lesson-link" href="lesson-03.html" data-lesson="3"><span>03</span><strong>普通后端基础：API、Server、Database、Auth、Storage、Queue、Logs</strong></a>
+<a class="lesson-link" href="lesson-04.html" data-lesson="4"><span>04</span><strong>数据库与 AI 产品数据结构</strong></a>
+<a class="lesson-link" href="lesson-05.html" data-lesson="5"><span>05</span><strong>第 1 周总复盘：从普通 App 到 AI App 后端总图</strong></a>
+<a class="lesson-link" href="lesson-06.html" data-lesson="6"><span>06</span><strong>LLM API 基础：模型如何被产品调用</strong></a>
+<a class="lesson-link" href="lesson-07.html" data-lesson="7"><span>07</span><strong>Prompt Engineering：模型任务协议设计</strong></a>
+<a class="lesson-link" href="lesson-08.html" data-lesson="8"><span>08</span><strong>Structured Output：可被程序使用的结构化结果</strong></a>
+<a class="lesson-link" href="lesson-09.html" data-lesson="9"><span>09</span><strong>Context Engineering：模型本次可见信息的组织方法</strong></a>
+<a class="lesson-link" href="lesson-10.html" data-lesson="10"><span>10</span><strong>RAG / Knowledge Base：让模型使用可靠外部知识</strong></a>
+<a class="lesson-link active" href="lesson-11.html" data-lesson="11"><span>11</span><strong>Memory 系统：面向未来任务的状态管理</strong></a>
+<a class="lesson-link" href="lesson-12.html" data-lesson="12"><span>12</span><strong>Tool Calling / Function Calling / MCP：从语言输出到系统动作</strong></a>
+<a class="lesson-link" href="lesson-13.html" data-lesson="13"><span>13</span><strong>Workflow vs Agent：AI 系统编排方式的边界</strong></a>
+<a class="lesson-link" href="lesson-14.html" data-lesson="14"><span>14</span><strong>Harness 工程：把模型纳入可控运行系统</strong></a>
+<a class="lesson-link" href="lesson-15.html" data-lesson="15"><span>15</span><strong>Model Selection / Model Routing：按任务选择合适模型</strong></a>
+<a class="lesson-link" href="lesson-16.html" data-lesson="16"><span>16</span><strong>Guardrails / Safety：AI 系统安全护栏</strong></a>
+<a class="lesson-link" href="lesson-17.html" data-lesson="17"><span>17</span><strong>Evals / Evaluation：将失败案例沉淀为测试集</strong></a>
+<a class="lesson-link" href="lesson-18.html" data-lesson="18"><span>18</span><strong>Observability / Tracing / Logs：让 AI 行为可回放、可解释、可定位</strong></a>
+<a class="lesson-link" href="lesson-19.html" data-lesson="19"><span>19</span><strong>Deployment / LLMOps：从 Demo 到可上线系统</strong></a>
+<a class="lesson-link" href="lesson-20.html" data-lesson="20"><span>20</span><strong>主流框架与实现参考：框架作为工程实现方式</strong></a></div>
+  </aside>
+  <main class="lesson-main">
+    <nav class="topbar">
+      <a href="../index.html">首页</a>
+      <a href="lesson-10.html">上一课</a>
+      <a href="lesson-12.html">下一课</a>
+      <button class="complete-btn" type="button" data-complete-toggle="11">标记完成</button>
+    </nav>
+    <header class="lesson-hero">
+      <div class="lesson-kicker">第 11 课 · Week 3</div>
+      <h1>Memory 系统：面向未来任务的状态管理</h1>
+      <p>区分聊天记录与可复用记忆，理解记忆读写、保留、删除和风险控制。</p>
+      <div class="tag-row"><span>Memory</span><span>用户画像</span><span>长期状态</span></div>
+    </header>
+    <section class="lesson-tools">
+      <label><span>本课搜索</span><input type="search" class="page-search" placeholder="输入关键词，定位正文内容"></label>
+      <div class="font-controls" aria-label="字体大小"><button type="button" data-font="smaller">A-</button><button type="button" data-font="larger">A+</button></div>
+    </section>
+    <article class="lesson-content" id="content">
+      <section class="classroom-block">
+        <h2>课程目标</h2>
+        <p>区分聊天记录与可复用记忆，理解记忆读写、保留、删除和风险控制。</p>
+      </section>
+<h3 id="1-本课问题域">1. 本课问题域</h3>
+<p>没有 Memory 的 AI 应用，每次交互都缺少长期状态基础。</p>
+<p>它只能依赖：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>当前输入
++ 当前会话上下文
++ 临时传入的信息</code></pre></div>
+<p>但真实产品里，用户希望系统能持续理解：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>我是谁
+我现在处于什么阶段
+我之前发生过什么
+我偏好什么
+我讨厌什么
+我有哪些未完成事项</code></pre></div>
+<p>Memory 要解决的，就是这种长期连续性问题。</p>
+<p>一句话定义：</p>
+<blockquote><p><strong>Memory = 从过去信息中提取未来任务有用的状态。</strong></p></blockquote>
+<p>注意：Memory 的目标并非保存全部聊天记录，而应是沉淀未来任务可复用的状态。</p>
+<hr>
+<h3 id="2-memory-在知识树里的位置">2. Memory 在知识树里的位置</h3>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户输入
+→ Harness 判断是否需要个人历史
+→ Memory 检索相关状态
+→ 注入 Context
+→ 模型生成
+→ Harness 判断是否写入新记忆
+→ 用户可查看 / 编辑 / 删除</code></pre></div>
+<p>Memory 同时发生在两处：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>读记忆：这次回复前，拿出相关记忆
+写记忆：这次回复后，判断是否新增/更新记忆</code></pre></div>
+<hr>
+<h3 id="3-memory-和聊天记录的区别">3. Memory 和聊天记录的区别</h3>
+<div class="table-wrap"><table><thead><tr><th>类型</th><th>是什么</th><th>是否等于 Memory</th></tr></thead><tbody><tr><td>聊天记录</td><td>所有原始对话</td><td>并非</td></tr><tr><td>摘要</td><td>对话压缩版</td><td>可能是 Memory 输入</td></tr><tr><td>用户资料</td><td>结构化个人信息</td><td>是一种稳定记忆</td></tr><tr><td>偏好</td><td>用户长期喜欢/不喜欢</td><td>是重要 Memory</td></tr><tr><td>事件</td><td>发生过的重要事情</td><td>是事件记忆</td></tr><tr><td>当前会话</td><td>临时上下文</td><td>是短期记忆，不一定长期保存</td></tr></tbody></table></div>
+<p>举例：</p>
+<p>用户说：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>“我不太喜欢被一直提醒体重，会更焦虑。”</code></pre></div>
+<p>原始聊天记录是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户说了这句话</code></pre></div>
+<p>Memory 应该提取成：</p>
+<div class="code-block"><div class="code-label">json</div><button class="copy-code" type="button">复制</button><pre><code>{
+  &quot;type&quot;: &quot;preference&quot;,
+  &quot;content&quot;: &quot;用户不喜欢频繁体重提醒，容易引发焦虑&quot;,
+  &quot;sensitivity&quot;: &quot;medium&quot;,
+  &quot;usage_policy&quot;: &quot;在提醒策略中降低体重相关主动触达频率&quot;
+}</code></pre></div>
+<hr>
+<h3 id="4-memory-的基本类型">4. Memory 的基本类型</h3>
+<h4 id="a-short-term-memory">A. Short-term Memory</h4>
+<p>短期记忆。</p>
+<p>主要是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>当前会话上下文
+最近几轮对话
+当前任务临时状态</code></pre></div>
+<p>适合回答：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>“你刚刚说的那个是什么意思？”
+“继续刚才那个”
+“那我该怎么做？”</code></pre></div>
+<h4 id="b-long-term-memory">B. Long-term Memory</h4>
+<p>长期记忆。</p>
+<p>主要是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>长期偏好
+稳定用户资料
+重要事件
+持续目标
+关系上下文
+未完成事项</code></pre></div>
+<h4 id="c-user-profile-memory">C. User Profile Memory</h4>
+<p>用户画像记忆。</p>
+<p>例如：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>孕周 / 阶段
+预产期
+是否一胎
+所在城市
+就诊医院
+家庭角色</code></pre></div>
+<p>这类更像结构化数据库信息。</p>
+<h4 id="d-preference-memory">D. Preference Memory</h4>
+<p>偏好记忆。</p>
+<p>例如：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>喜欢简短直接
+不喜欢过度安慰
+希望提醒少一点
+希望解释更具体</code></pre></div>
+<h4 id="e-event-memory">E. Event Memory</h4>
+<p>事件记忆。</p>
+<p>例如：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>一次产检异常
+一次重要担忧
+一次医生建议
+一次家庭沟通冲突
+一次明确决定</code></pre></div>
+<h4 id="f-graph-memory">F. Graph Memory</h4>
+<p>图谱记忆。</p>
+<p>它不只是“记一句话”，核心是记关系。</p>
+<p>例如：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户 → 担心 → 某个检查指标
+用户 → 不喜欢 → 频繁提醒
+用户 → 正在处理 → 问医生清单
+家人 → 影响 → 用户决策</code></pre></div>
+<p>Zep / Graphiti 这类方向强调用图结构表达长期记忆中的实体、关系和时间变化。无需一开始实现图谱记忆，但要知道它解决的是“关系和演化”的问题。</p>
+<hr>
+<h3 id="5-memory-的读写链路">5. Memory 的读写链路</h3>
+<h4 id="a-读记忆">A. 读记忆</h4>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户输入
+→ 判断任务类型
+→ 检索相关 Memory
+→ 过滤不该注入的敏感记忆
+→ 拼入 Context
+→ 模型生成</code></pre></div>
+<h4 id="b-写记忆">B. 写记忆</h4>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户输入 + 模型输出
+→ 判断是否值得记
+→ 判断记忆类型
+→ 判断敏感级别
+→ 写入 / 更新 / 忽略
+→ 允许用户查看、编辑、删除</code></pre></div>
+<hr>
+<h3 id="6-什么值得记？">6. 什么值得记？</h3>
+<p>并非所有信息都值得写入记忆。</p>
+<p>值得记的通常是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 长期稳定资料
+2. 明确偏好
+3. 重复出现的关注点
+4. 用户明确要求记住
+5. 对未来任务有明显帮助的事件
+6. 对安全和边界有帮助的信息</code></pre></div>
+<p>不应该乱记：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 一次性闲聊
+2. 短期情绪波动
+3. 敏感信息但没有明确用途
+4. 会让用户有被监视感的信息
+5. 用户没有授权的家庭隐私</code></pre></div>
+<hr>
+<h3 id="7-memory-的最大风险">7. Memory 的最大风险</h3>
+<p>Memory 的能力边界需要受控设计。</p>
+<p>风险包括：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 记错
+2. 过度记忆
+3. 在不合适时机提起
+4. 暴露敏感信息
+5. 用户删除后仍被使用
+6. 把短期状态误判成长期偏好
+7. 让用户感觉被监控</code></pre></div>
+<p>所以 Memory 必须配套：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Memory Policy
+User Control
+Deletion
+Suppression
+Audit Log
+Safety Rules</code></pre></div>
+<hr>
+<h3 id="8-学习者需要看懂的最小代码结构">8. 学习者需要看懂的最小代码结构</h3>
+<div class="code-block"><div class="code-label">python</div><button class="copy-code" type="button">复制</button><pre><code># 伪代码：读取记忆
+def build_context(user_id, user_message):
+    memories = memory_store.search(
+        user_id=user_id,
+        query=user_message,
+        top_k=5
+    )
+    safe_memories = filter_sensitive_memories(memories)
+    context = {
+        &quot;user_message&quot;: user_message,
+        &quot;relevant_memories&quot;: safe_memories
+    }
+    return context</code></pre></div>
+<p>只需看懂：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>memory_store.search() = 查相关记忆
+filter_sensitive_memories() = 过滤不该用的记忆
+context = 把记忆放进这次模型输入</code></pre></div>
+<hr>
+<h3 id="9-memory-和-rag-的边界">9. Memory 和 RAG 的边界</h3>
+<div class="table-wrap"><table><thead><tr><th>问题</th><th>更像 RAG</th><th>更像 Memory</th></tr></thead><tbody><tr><td>“糖耐异常是什么意思？”</td><td>是</td><td>否</td></tr><tr><td>“我之前是否说过我不想查太多资料？”</td><td>否</td><td>是</td></tr><tr><td>“孕晚期胎动减少有哪些注意事项？”</td><td>是</td><td>可能结合 Memory</td></tr><tr><td>“我现在是孕几周？”</td><td>否，查用户资料</td><td>是结构化状态</td></tr><tr><td>“上次医生怎么说的？”</td><td>否，查记录/事件记忆</td><td>是</td></tr></tbody></table></div>
+<p>一句话：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>RAG 处理外部知识。
+Memory 处理用户个人连续性。</code></pre></div>
+<hr>
+<h3 id="10-学习产出">10. 学习产出</h3>
+<p>请写一个 Memory 类型表：</p>
+<div class="table-wrap"><table><thead><tr><th>Memory 类型</th><th>例子</th><th>是否敏感</th><th>什么时候使用</th><th>是否允许用户编辑</th></tr></thead><tbody><tr><td>用户资料</td><td>预产期</td><td>中</td><td>阶段判断</td><td>是</td></tr><tr><td>偏好</td><td>不喜欢频繁提醒</td><td>中</td><td>提醒策略</td><td>是</td></tr><tr><td>事件</td><td>某次检查异常</td><td>高</td><td>后续解释/回访</td><td>是</td></tr><tr><td>安全边界</td><td>用户表达极端风险</td><td>高</td><td>安全响应</td><td>受控</td></tr></tbody></table></div>
+<hr>
+<h3 id="11-课后复盘">11. 课后复盘</h3>
+<ol><li>Memory 为什么不同于普通聊天记录？</li><li>什么信息值得写入长期记忆？</li><li>Memory 和 RAG 的边界是什么？</li><li>为什么 Memory 必须允许用户查看、编辑、删除？</li><li>Memory 注入 Context 时，最容易出什么风险？</li></ol>
+<hr>
+    </article>
+    <nav class="bottom-nav"><a href="lesson-10.html">上一课</a><a href="../index.html">返回课程首页</a><a href="lesson-12.html">下一课</a></nav>
+  </main>
+  <aside class="toc-panel"><p>本课目录</p><a class="toc-link level-3" href="#1-本课问题域">1. 本课问题域</a>
+<a class="toc-link level-3" href="#2-memory-在知识树里的位置">2. Memory 在知识树里的位置</a>
+<a class="toc-link level-3" href="#3-memory-和聊天记录的区别">3. Memory 和聊天记录的区别</a>
+<a class="toc-link level-3" href="#4-memory-的基本类型">4. Memory 的基本类型</a>
+<a class="toc-link level-4" href="#a-short-term-memory">A. Short-term Memory</a>
+<a class="toc-link level-4" href="#b-long-term-memory">B. Long-term Memory</a>
+<a class="toc-link level-4" href="#c-user-profile-memory">C. User Profile Memory</a>
+<a class="toc-link level-4" href="#d-preference-memory">D. Preference Memory</a>
+<a class="toc-link level-4" href="#e-event-memory">E. Event Memory</a>
+<a class="toc-link level-4" href="#f-graph-memory">F. Graph Memory</a>
+<a class="toc-link level-3" href="#5-memory-的读写链路">5. Memory 的读写链路</a>
+<a class="toc-link level-4" href="#a-读记忆">A. 读记忆</a>
+<a class="toc-link level-4" href="#b-写记忆">B. 写记忆</a>
+<a class="toc-link level-3" href="#6-什么值得记？">6. 什么值得记？</a>
+<a class="toc-link level-3" href="#7-memory-的最大风险">7. Memory 的最大风险</a>
+<a class="toc-link level-3" href="#8-学习者需要看懂的最小代码结构">8. 学习者需要看懂的最小代码结构</a>
+<a class="toc-link level-3" href="#9-memory-和-rag-的边界">9. Memory 和 RAG 的边界</a>
+<a class="toc-link level-3" href="#10-学习产出">10. 学习产出</a>
+<a class="toc-link level-3" href="#11-课后复盘">11. 课后复盘</a></aside>
+</div>
+<script src="../assets/site.js"></script>
+</body>
+</html>

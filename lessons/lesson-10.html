@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 10 课｜RAG / Knowledge Base：让模型使用可靠外部知识</title>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="lesson-page">
+<div class="reader-shell" data-page="lesson" data-lesson="10">
+  <aside class="course-sidebar">
+    <a class="brand" href="../index.html"><span>AI</span><strong>应用工程课程</strong></a>
+    <div class="sidebar-section"><p>课程导航</p><a class="lesson-link" href="lesson-01.html" data-lesson="1"><span>01</span><strong>AI App 和普通 App 的工程差异</strong></a>
+<a class="lesson-link" href="lesson-02.html" data-lesson="2"><span>02</span><strong>基础开发词典：JS、TS、Node、React、Python、npm</strong></a>
+<a class="lesson-link" href="lesson-03.html" data-lesson="3"><span>03</span><strong>普通后端基础：API、Server、Database、Auth、Storage、Queue、Logs</strong></a>
+<a class="lesson-link" href="lesson-04.html" data-lesson="4"><span>04</span><strong>数据库与 AI 产品数据结构</strong></a>
+<a class="lesson-link" href="lesson-05.html" data-lesson="5"><span>05</span><strong>第 1 周总复盘：从普通 App 到 AI App 后端总图</strong></a>
+<a class="lesson-link" href="lesson-06.html" data-lesson="6"><span>06</span><strong>LLM API 基础：模型如何被产品调用</strong></a>
+<a class="lesson-link" href="lesson-07.html" data-lesson="7"><span>07</span><strong>Prompt Engineering：模型任务协议设计</strong></a>
+<a class="lesson-link" href="lesson-08.html" data-lesson="8"><span>08</span><strong>Structured Output：可被程序使用的结构化结果</strong></a>
+<a class="lesson-link" href="lesson-09.html" data-lesson="9"><span>09</span><strong>Context Engineering：模型本次可见信息的组织方法</strong></a>
+<a class="lesson-link active" href="lesson-10.html" data-lesson="10"><span>10</span><strong>RAG / Knowledge Base：让模型使用可靠外部知识</strong></a>
+<a class="lesson-link" href="lesson-11.html" data-lesson="11"><span>11</span><strong>Memory 系统：面向未来任务的状态管理</strong></a>
+<a class="lesson-link" href="lesson-12.html" data-lesson="12"><span>12</span><strong>Tool Calling / Function Calling / MCP：从语言输出到系统动作</strong></a>
+<a class="lesson-link" href="lesson-13.html" data-lesson="13"><span>13</span><strong>Workflow vs Agent：AI 系统编排方式的边界</strong></a>
+<a class="lesson-link" href="lesson-14.html" data-lesson="14"><span>14</span><strong>Harness 工程：把模型纳入可控运行系统</strong></a>
+<a class="lesson-link" href="lesson-15.html" data-lesson="15"><span>15</span><strong>Model Selection / Model Routing：按任务选择合适模型</strong></a>
+<a class="lesson-link" href="lesson-16.html" data-lesson="16"><span>16</span><strong>Guardrails / Safety：AI 系统安全护栏</strong></a>
+<a class="lesson-link" href="lesson-17.html" data-lesson="17"><span>17</span><strong>Evals / Evaluation：将失败案例沉淀为测试集</strong></a>
+<a class="lesson-link" href="lesson-18.html" data-lesson="18"><span>18</span><strong>Observability / Tracing / Logs：让 AI 行为可回放、可解释、可定位</strong></a>
+<a class="lesson-link" href="lesson-19.html" data-lesson="19"><span>19</span><strong>Deployment / LLMOps：从 Demo 到可上线系统</strong></a>
+<a class="lesson-link" href="lesson-20.html" data-lesson="20"><span>20</span><strong>主流框架与实现参考：框架作为工程实现方式</strong></a></div>
+  </aside>
+  <main class="lesson-main">
+    <nav class="topbar">
+      <a href="../index.html">首页</a>
+      <a href="lesson-09.html">上一课</a>
+      <a href="lesson-11.html">下一课</a>
+      <button class="complete-btn" type="button" data-complete-toggle="10">标记完成</button>
+    </nav>
+    <header class="lesson-hero">
+      <div class="lesson-kicker">第 10 课 · Week 3</div>
+      <h1>RAG / Knowledge Base：让模型使用可靠外部知识</h1>
+      <p>理解知识入库、向量检索、重排、引用和 RAG 与数据库、Memory 的边界。</p>
+      <div class="tag-row"><span>RAG</span><span>Embedding</span><span>检索</span></div>
+    </header>
+    <section class="lesson-tools">
+      <label><span>本课搜索</span><input type="search" class="page-search" placeholder="输入关键词，定位正文内容"></label>
+      <div class="font-controls" aria-label="字体大小"><button type="button" data-font="smaller">A-</button><button type="button" data-font="larger">A+</button></div>
+    </section>
+    <article class="lesson-content" id="content">
+      <section class="classroom-block">
+        <h2>课程目标</h2>
+        <p>理解知识入库、向量检索、重排、引用和 RAG 与数据库、Memory 的边界。</p>
+      </section>
+<h3 id="1-本课问题域">1. 本课问题域</h3>
+<p>大模型本身有很多通用知识，但它有几个天然限制：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 不知道学习者的私有资料
+2. 不知道实时变化的信息
+3. 可能记错或编造
+4. 不能天然引用学习者的业务文档
+5. 无法保证回答依据来自指定来源</code></pre></div>
+<p>RAG 的目的在于让模型回答前获得可靠外部资料，而并非单纯增强聊天表现。</p>
+<p>一句话定义：</p>
+<blockquote><p><strong>RAG（Retrieval-Augmented Generation）= 先检索相关知识，再让模型基于检索结果生成回答。</strong></p></blockquote>
+<p>LlamaIndex 官方资料把 RAG 解释为：LLM 没有训练在学习者的私有数据上，RAG 通过把学习者的数据加入模型可访问的信息中来解决这个问题。OpenAI 的 Retrieval 文档也把 vector stores 作为数据索引，用于语义搜索和检索。</p>
+<hr>
+<h3 id="2-rag-在知识树里的位置">2. RAG 在知识树里的位置</h3>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户输入
+→ 后端接收
+→ Harness 判断是否需要外部知识
+→ RAG 检索知识库
+→ 把检索结果放进 Context
+→ 调用模型生成回答
+→ 输出答案
+→ 写入日志 / 评测</code></pre></div>
+<p>RAG 不等于数据库，不等于 Memory，也不等于搜索引擎。</p>
+<p>它更像是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>“给模型临时发一份参考资料”</code></pre></div>
+<hr>
+<h3 id="3-rag-的基本链路">3. RAG 的基本链路</h3>
+<p>完整 RAG 分两段。</p>
+<h4 id="a-知识入库阶段">A. 知识入库阶段</h4>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>原始资料
+→ 清洗
+→ 切块 Chunk
+→ 生成 Embedding
+→ 存入 Vector Database / Vector Store
+→ 建立索引</code></pre></div>
+<h4 id="b-用户查询阶段">B. 用户查询阶段</h4>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户问题
+→ 问题向量化
+→ 在向量库中检索相似知识片段
+→ 可选：Reranking 重排
+→ 选出最相关片段
+→ 放进模型上下文
+→ 模型基于这些片段回答</code></pre></div>
+<hr>
+<h3 id="4-基础解释-embedding-是什么">4. 基础解释：Embedding 是什么</h3>
+<p>可以这样理解：</p>
+<blockquote><p>Embedding 是把一段文字变成一组数字，让计算机可以判断“语义相似度”。</p></blockquote>
+<p>例如：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>“孕晚期胎动减少怎么办”</code></pre></div>
+<p>和：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>“怀孕后期宝宝动得少了需要注意什么”</code></pre></div>
+<p>字面不一样，但语义接近。</p>
+<p>Embedding 会把它们转成向量，系统可以计算它们的距离。OpenAI 官方文档也说明，embedding 是浮点数列表，两个向量之间的距离可以表示相关性，距离小通常表示相关性高。</p>
+<hr>
+<h3 id="5-基础解释-vector-database-是什么">5. 基础解释：Vector Database 是什么</h3>
+<p>普通数据库适合查：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户 ID = 123
+订单状态 = paid
+创建时间 &gt; 2026-01-01</code></pre></div>
+<p>向量数据库适合查：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>意思和“胎动减少”最接近的知识片段</code></pre></div>
+<p>所以：</p>
+<div class="table-wrap"><table><thead><tr><th>查询类型</th><th>更适合</th></tr></thead><tbody><tr><td>精确查用户资料</td><td>普通数据库</td></tr><tr><td>模糊查语义相近资料</td><td>向量数据库</td></tr><tr><td>查长期用户偏好</td><td>Memory / 普通数据库 / 向量检索结合</td></tr><tr><td>查实时业务状态</td><td>普通数据库 / Tool</td></tr><tr><td>查权威知识片段</td><td>RAG / Vector Store</td></tr></tbody></table></div>
+<hr>
+<h3 id="6-rag-和普通搜索有什么区别">6. RAG 和普通搜索有什么区别</h3>
+<p>普通搜索更偏关键词：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>关键词匹配：胎动 + 减少</code></pre></div>
+<p>RAG 更偏语义：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>语义匹配：用户在问胎动变少是否危险</code></pre></div>
+<p>但不要神化 RAG。RAG 也会失败。</p>
+<p>常见失败包括：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 知识库资料本身不准
+2. 文档切块太差
+3. 检索出来的片段不相关
+4. 模型没有严格基于资料回答
+5. 没有引用来源
+6. 没有处理资料之间的冲突</code></pre></div>
+<hr>
+<h3 id="7-rag-database-memory-的边界">7. RAG、Database、Memory 的边界</h3>
+<p>这是重点。</p>
+<div class="table-wrap"><table><thead><tr><th>模块</th><th>存什么</th><th>什么时候用</th><th>例子</th></tr></thead><tbody><tr><td>Database</td><td>结构化业务数据</td><td>精确查询</td><td>用户预产期、账号、记录、订单</td></tr><tr><td>RAG</td><td>外部知识资料</td><td>需要事实依据时</td><td>孕期检查知识、产品文档、医学说明</td></tr><tr><td>Memory</td><td>用户长期状态</td><td>需要理解用户个人连续性时</td><td>用户偏好、长期担忧、曾经发生过的重要事件</td></tr></tbody></table></div>
+<p>一句话：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Database = 系统事实
+RAG = 外部知识
+Memory = 个人状态</code></pre></div>
+<hr>
+<h3 id="8-在学习者的项目里-rag-可能负责什么">8. 在学习者的项目里，RAG 可能负责什么</h3>
+<p>这里只作为案例，不反推知识结构。</p>
+<p>孕产陪伴产品中，RAG 可能负责：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 孕期阶段知识
+2. 检查指标解释
+3. 红旗信号说明
+4. 产后恢复基础知识
+5. 新生儿早期照护知识
+6. 产品内部规则文档
+7. 医疗安全边界说明</code></pre></div>
+<p>但注意：</p>
+<blockquote><p>高风险场景不能只靠 RAG。  </p><p>RAG 只是提供知识，不负责最终安全裁决。</p></blockquote>
+<p>最终安全裁决应由：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Harness
++ Risk Detection
++ Guardrails
++ 固定安全策略
++ 必要时人工/医生/线下就医建议</code></pre></div>
+<p>共同完成。</p>
+<hr>
+<h3 id="9-学习者需要看懂的最小代码结构">9. 学习者需要看懂的最小代码结构</h3>
+<p>无需掌握编写细节，但要能看懂大概位置。</p>
+<div class="code-block"><div class="code-label">python</div><button class="copy-code" type="button">复制</button><pre><code># 伪代码：RAG 查询链路
+def answer_with_rag(user_question):
+    query_vector = embed(user_question)
+    docs = vector_store.search(
+        vector=query_vector,
+        top_k=5
+    )
+    context = build_context(
+        question=user_question,
+        retrieved_docs=docs
+    )
+    answer = call_llm(context)
+    return answer</code></pre></div>
+<p>只需看懂：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>embed() = 把问题变成向量
+vector_store.search() = 检索相似知识
+build_context() = 把资料拼进上下文
+call_llm() = 调模型回答</code></pre></div>
+<hr>
+<h3 id="10-实战判断-什么时候不该用-rag">10. 实战判断：什么时候不该用 RAG</h3>
+<p>不要什么都 RAG。</p>
+<div class="table-wrap"><table><thead><tr><th>场景</th><th>是否需要 RAG</th><th>判断</th></tr></thead><tbody><tr><td>用户问“你能陪我聊会儿吗”</td><td>通常不需要</td><td>这是陪伴对话</td></tr><tr><td>用户问“我上次说的那个检查是什么”</td><td>不一定</td><td>可能查 Memory / 历史记录</td></tr><tr><td>用户问“妊娠糖耐异常是什么意思”</td><td>需要</td><td>需要权威知识</td></tr><tr><td>用户问“我的预产期是哪天”</td><td>不需要 RAG</td><td>查数据库</td></tr><tr><td>用户上传检查单要求解释</td><td>可能需要</td><td>OCR + 数据库 + RAG + 安全边界</td></tr><tr><td>用户问“现在东京天气”</td><td>不需要 RAG</td><td>用 Tool / 外部 API</td></tr></tbody></table></div>
+<hr>
+<h3 id="11-学习产出">11. 学习产出</h3>
+<p>请写一个简版表：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>我的产品里：
+哪些问题需要 RAG？
+哪些问题应该查数据库？
+哪些问题应该查 Memory？
+哪些问题应该调用工具？
+哪些问题应该直接回复？</code></pre></div>
+<hr>
+<h3 id="12-课后复盘">12. 课后复盘</h3>
+<ol><li>为什么 RAG 不能简化为“知识库问答”？</li><li>Embedding 和 Vector Database 分别解决什么问题？</li><li>RAG 和 Memory 的边界是什么？</li><li>为什么高风险回答不能只靠 RAG？</li><li>什么场景应该查数据库，而并非走 RAG？</li></ol>
+<hr>
+    </article>
+    <nav class="bottom-nav"><a href="lesson-09.html">上一课</a><a href="../index.html">返回课程首页</a><a href="lesson-11.html">下一课</a></nav>
+  </main>
+  <aside class="toc-panel"><p>本课目录</p><a class="toc-link level-3" href="#1-本课问题域">1. 本课问题域</a>
+<a class="toc-link level-3" href="#2-rag-在知识树里的位置">2. RAG 在知识树里的位置</a>
+<a class="toc-link level-3" href="#3-rag-的基本链路">3. RAG 的基本链路</a>
+<a class="toc-link level-4" href="#a-知识入库阶段">A. 知识入库阶段</a>
+<a class="toc-link level-4" href="#b-用户查询阶段">B. 用户查询阶段</a>
+<a class="toc-link level-3" href="#4-基础解释-embedding-是什么">4. 基础解释：Embedding 是什么</a>
+<a class="toc-link level-3" href="#5-基础解释-vector-database-是什么">5. 基础解释：Vector Database 是什么</a>
+<a class="toc-link level-3" href="#6-rag-和普通搜索有什么区别">6. RAG 和普通搜索有什么区别</a>
+<a class="toc-link level-3" href="#7-rag-database-memory-的边界">7. RAG、Database、Memory 的边界</a>
+<a class="toc-link level-3" href="#8-在学习者的项目里-rag-可能负责什么">8. 在学习者的项目里，RAG 可能负责什么</a>
+<a class="toc-link level-3" href="#9-学习者需要看懂的最小代码结构">9. 学习者需要看懂的最小代码结构</a>
+<a class="toc-link level-3" href="#10-实战判断-什么时候不该用-rag">10. 实战判断：什么时候不该用 RAG</a>
+<a class="toc-link level-3" href="#11-学习产出">11. 学习产出</a>
+<a class="toc-link level-3" href="#12-课后复盘">12. 课后复盘</a></aside>
+</div>
+<script src="../assets/site.js"></script>
+</body>
+</html>

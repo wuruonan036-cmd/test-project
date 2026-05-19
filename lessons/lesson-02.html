@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 02 课｜基础开发词典：JS、TS、Node、React、Python、npm</title>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="lesson-page">
+<div class="reader-shell" data-page="lesson" data-lesson="2">
+  <aside class="course-sidebar">
+    <a class="brand" href="../index.html"><span>AI</span><strong>应用工程课程</strong></a>
+    <div class="sidebar-section"><p>课程导航</p><a class="lesson-link" href="lesson-01.html" data-lesson="1"><span>01</span><strong>AI App 和普通 App 的工程差异</strong></a>
+<a class="lesson-link active" href="lesson-02.html" data-lesson="2"><span>02</span><strong>基础开发词典：JS、TS、Node、React、Python、npm</strong></a>
+<a class="lesson-link" href="lesson-03.html" data-lesson="3"><span>03</span><strong>普通后端基础：API、Server、Database、Auth、Storage、Queue、Logs</strong></a>
+<a class="lesson-link" href="lesson-04.html" data-lesson="4"><span>04</span><strong>数据库与 AI 产品数据结构</strong></a>
+<a class="lesson-link" href="lesson-05.html" data-lesson="5"><span>05</span><strong>第 1 周总复盘：从普通 App 到 AI App 后端总图</strong></a>
+<a class="lesson-link" href="lesson-06.html" data-lesson="6"><span>06</span><strong>LLM API 基础：模型如何被产品调用</strong></a>
+<a class="lesson-link" href="lesson-07.html" data-lesson="7"><span>07</span><strong>Prompt Engineering：模型任务协议设计</strong></a>
+<a class="lesson-link" href="lesson-08.html" data-lesson="8"><span>08</span><strong>Structured Output：可被程序使用的结构化结果</strong></a>
+<a class="lesson-link" href="lesson-09.html" data-lesson="9"><span>09</span><strong>Context Engineering：模型本次可见信息的组织方法</strong></a>
+<a class="lesson-link" href="lesson-10.html" data-lesson="10"><span>10</span><strong>RAG / Knowledge Base：让模型使用可靠外部知识</strong></a>
+<a class="lesson-link" href="lesson-11.html" data-lesson="11"><span>11</span><strong>Memory 系统：面向未来任务的状态管理</strong></a>
+<a class="lesson-link" href="lesson-12.html" data-lesson="12"><span>12</span><strong>Tool Calling / Function Calling / MCP：从语言输出到系统动作</strong></a>
+<a class="lesson-link" href="lesson-13.html" data-lesson="13"><span>13</span><strong>Workflow vs Agent：AI 系统编排方式的边界</strong></a>
+<a class="lesson-link" href="lesson-14.html" data-lesson="14"><span>14</span><strong>Harness 工程：把模型纳入可控运行系统</strong></a>
+<a class="lesson-link" href="lesson-15.html" data-lesson="15"><span>15</span><strong>Model Selection / Model Routing：按任务选择合适模型</strong></a>
+<a class="lesson-link" href="lesson-16.html" data-lesson="16"><span>16</span><strong>Guardrails / Safety：AI 系统安全护栏</strong></a>
+<a class="lesson-link" href="lesson-17.html" data-lesson="17"><span>17</span><strong>Evals / Evaluation：将失败案例沉淀为测试集</strong></a>
+<a class="lesson-link" href="lesson-18.html" data-lesson="18"><span>18</span><strong>Observability / Tracing / Logs：让 AI 行为可回放、可解释、可定位</strong></a>
+<a class="lesson-link" href="lesson-19.html" data-lesson="19"><span>19</span><strong>Deployment / LLMOps：从 Demo 到可上线系统</strong></a>
+<a class="lesson-link" href="lesson-20.html" data-lesson="20"><span>20</span><strong>主流框架与实现参考：框架作为工程实现方式</strong></a></div>
+  </aside>
+  <main class="lesson-main">
+    <nav class="topbar">
+      <a href="../index.html">首页</a>
+      <a href="lesson-01.html">上一课</a>
+      <a href="lesson-03.html">下一课</a>
+      <button class="complete-btn" type="button" data-complete-toggle="2">标记完成</button>
+    </nav>
+    <header class="lesson-hero">
+      <div class="lesson-kicker">第 02 课 · Week 1</div>
+      <h1>基础开发词典：JS、TS、Node、React、Python、npm</h1>
+      <p>用工程位置理解常见开发名词，为后续阅读项目目录和代码片段建立基础。</p>
+      <div class="tag-row"><span>开发常识</span><span>项目结构</span><span>工具链</span></div>
+    </header>
+    <section class="lesson-tools">
+      <label><span>本课搜索</span><input type="search" class="page-search" placeholder="输入关键词，定位正文内容"></label>
+      <div class="font-controls" aria-label="字体大小"><button type="button" data-font="smaller">A-</button><button type="button" data-font="larger">A+</button></div>
+    </section>
+    <article class="lesson-content" id="content">
+      <section class="classroom-block">
+        <h2>课程目标</h2>
+        <p>用工程位置理解常见开发名词，为后续阅读项目目录和代码片段建立基础。</p>
+      </section>
+<h3 id="1-知识树定位">1. 知识树定位</h3>
+<p>这一课属于：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>AI 应用工程
+└─ 基础开发层
+   ├─ 前端
+   ├─ 后端
+   ├─ 编程语言
+   ├─ 运行环境
+   ├─ 框架
+   ├─ 依赖管理
+   └─ 代码协作</code></pre></div>
+<p>这一课解决的问题是：</p>
+<blockquote><p>无需马上写代码，但必须知道这些词在工程系统里分别处于什么位置。</p></blockquote>
+<hr>
+<h3 id="2-先建立一个大比喻">2. 先建立一个大比喻</h3>
+<p>把一个 App 想成一家餐厅。</p>
+<div class="table-wrap"><table><thead><tr><th>软件概念</th><th>餐厅类比</th></tr></thead><tbody><tr><td>前端</td><td>餐厅大厅、菜单、服务员和客人看到的界面</td></tr><tr><td>后端</td><td>后厨、订单系统、库存系统</td></tr><tr><td>API</td><td>服务员把客人需求传给后厨的标准话术</td></tr><tr><td>数据库</td><td>仓库和账本</td></tr><tr><td>模型 API</td><td>外部专家顾问</td></tr><tr><td>React</td><td>设计大厅和菜单的组件化方式</td></tr><tr><td>Node.js</td><td>让 JavaScript 可以在后厨跑起来的环境</td></tr><tr><td>Python</td><td>另一种后厨语言，AI 工程常用</td></tr><tr><td>npm</td><td>原料和工具采购系统</td></tr><tr><td>package.json</td><td>餐厅工具清单和启动说明</td></tr><tr><td>GitHub</td><td>代码仓库和协作记录</td></tr></tbody></table></div>
+<hr>
+<h3 id="3-javascript-是什么？">3. JavaScript 是什么？</h3>
+<p><strong>JavaScript，简称 JS。</strong></p>
+<p>最初主要用于网页交互。</p>
+<p>例如：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>点击按钮
+弹出窗口
+切换页面状态
+提交表单
+展示动画</code></pre></div>
+<p>现在 JavaScript 不只在浏览器里用，也能通过 Node.js 跑在服务器上。</p>
+<p>需要记住：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>JavaScript = Web 世界最核心的编程语言之一</code></pre></div>
+<hr>
+<h3 id="4-typescript-是什么？">4. TypeScript 是什么？</h3>
+<p><strong>TypeScript，简称 TS。</strong></p>
+<p>它可以理解成“更严格、更适合大型项目的 JavaScript”。</p>
+<p>JavaScript 比较自由，但大型项目里容易出错。TypeScript 增加了类型系统。</p>
+<p>举例：</p>
+<div class="code-block"><div class="code-label">ts</div><button class="copy-code" type="button">复制</button><pre><code>const age: number = 32</code></pre></div>
+<p>这表示：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>age 必须是数字</code></pre></div>
+<p>如果写成：</p>
+<div class="code-block"><div class="code-label">ts</div><button class="copy-code" type="button">复制</button><pre><code>const age: number = &quot;32&quot;</code></pre></div>
+<p>TypeScript 会提示：这里不符合类型要求。</p>
+<p>需要记住：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>TypeScript = 带类型约束的 JavaScript，更适合团队项目和大型工程</code></pre></div>
+<hr>
+<h3 id="5-node-js-是什么？">5. Node.js 是什么？</h3>
+<p>浏览器能运行 JavaScript。 但是后端服务器原本不能直接像浏览器一样跑 JS。</p>
+<p><strong>Node.js 的作用就是让 JavaScript 可以在服务器、命令行和工具脚本里运行。</strong></p>
+<p>Node.js 官方定义为一个免费、开源、跨平台的 JavaScript runtime environment，可用于创建服务器、Web 应用、命令行工具和脚本。</p>
+<p>需要记住：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Node.js = 让 JavaScript 跑在浏览器外面的运行环境</code></pre></div>
+<p>所以：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>JavaScript / TypeScript = 语言
+Node.js = 运行这种语言的环境</code></pre></div>
+<hr>
+<h3 id="6-react-是什么？">6. React 是什么？</h3>
+<p>React 是前端 UI 库。</p>
+<p>它的核心思想是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>把界面拆成一个个组件，然后组合成页面</code></pre></div>
+<p>React 官方文档也强调，React 用 components 构建用户界面。</p>
+<p>例如一个页面可以拆成：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Header
+Sidebar
+ChatWindow
+InputBox
+Button
+Card</code></pre></div>
+<p>这些都是组件。</p>
+<p>需要记住：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>React = 用组件构建用户界面的前端库</code></pre></div>
+<hr>
+<h3 id="7-next-js-是什么？">7. Next.js 是什么？</h3>
+<p>Next.js 是基于 React 的全栈框架。</p>
+<p>React 主要负责界面。 Next.js 在 React 之上增加了：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>页面路由
+服务端渲染
+API Routes
+部署优化
+前后端一体能力</code></pre></div>
+<p>可以先粗略理解成：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>React = 做界面
+Next.js = 用 React 做完整 Web 应用的框架</code></pre></div>
+<hr>
+<h3 id="8-vite-是什么？">8. Vite 是什么？</h3>
+<p>Vite 是前端开发和构建工具。</p>
+<p>当前阶段很多原型项目如果是 Vite 项目，会有：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>vite.config.ts
+npm run dev
+npm run build</code></pre></div>
+<p>只需记住：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Vite = 帮前端项目快速启动、开发、打包的工具</code></pre></div>
+<hr>
+<h3 id="9-python-是什么？">9. Python 是什么？</h3>
+<p>Python 是另一种编程语言。</p>
+<p>在 AI 工程里很常见，因为大量 AI / 数据 / RAG / Agent 工具最早都在 Python 生态里。</p>
+<p>需要记住：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Python = AI 后端、数据处理、RAG、Agent 编排里非常常用的语言</code></pre></div>
+<p>但这不代表所有 AI App 都必须用 Python。 很多 Web AI 应用也会用 TypeScript / Node / Next.js。</p>
+<hr>
+<h3 id="10-npm-是什么？">10. npm 是什么？</h3>
+<p>npm 是 JavaScript / Node 生态的依赖管理工具。</p>
+<p>可以理解为：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>项目需要用哪些外部工具包
+npm 帮助学习者下载、安装、管理版本</code></pre></div>
+<p>例如：</p>
+<div class="code-block"><div class="code-label">bash</div><button class="copy-code" type="button">复制</button><pre><code>npm install</code></pre></div>
+<p>意思是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>根据 package.json，把这个项目需要的依赖装好</code></pre></div>
+<hr>
+<h3 id="11-package-json-是什么？">11. package.json 是什么？</h3>
+<p><code>package.json</code> 是前端 / Node 项目里非常重要的文件。</p>
+<p>它通常记录：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>项目名称
+依赖包
+启动命令
+构建命令
+脚本命令</code></pre></div>
+<p>例如：</p>
+<div class="code-block"><div class="code-label">json</div><button class="copy-code" type="button">复制</button><pre><code>{
+  &quot;scripts&quot;: {
+    &quot;dev&quot;: &quot;vite&quot;,
+    &quot;build&quot;: &quot;vite build&quot;
+  },
+  &quot;dependencies&quot;: {
+    &quot;react&quot;: &quot;^19.0.0&quot;
+  }
+}</code></pre></div>
+<p>只需看懂：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>npm run dev    = 启动开发环境
+npm run build  = 打包构建
+dependencies  = 项目依赖</code></pre></div>
+<hr>
+<h3 id="12-git-github-是什么？">12. Git / GitHub 是什么？</h3>
+<p>Git 是版本控制工具。 GitHub 是代码托管和协作平台。</p>
+<p>可以理解为：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Git = 本地记录代码每次变化
+GitHub = 把代码放到云端，方便协作和回溯</code></pre></div>
+<p>后续使用 Codex / Claude Code 时，必须知道：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>代码改了哪些文件？
+有没有新建文件？
+有没有删掉东西？
+能不能回滚？</code></pre></div>
+<p>这些都和 Git / GitHub 有关。</p>
+<hr>
+<h3 id="13-这些词之间的关系">13. 这些词之间的关系</h3>
+<div class="code-block"><div class="code-label">mermaid</div><button class="copy-code" type="button">复制</button><pre><code>flowchart TD
+  A[Web / AI App] --&gt; B[前端]
+  A --&gt; C[后端]
+  B --&gt; D[React]
+  B --&gt; E[TypeScript]
+  B --&gt; F[Vite / Next.js]
+  C --&gt; G[Node.js / TypeScript]
+  C --&gt; H[Python / FastAPI]
+  C --&gt; I[Database]
+  C --&gt; J[LLM API]
+  D --&gt; K[npm / package.json]
+  G --&gt; K
+  H --&gt; L[pip / Python packages]
+  A --&gt; M[Git / GitHub]</code></pre></div>
+<hr>
+<h3 id="14-实战判断">14. 实战判断</h3>
+<p>后续看到项目目录时，先找这几个文件：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>package.json      看项目命令和依赖
+src/              看主要源码
+app/ 或 pages/    看页面或路由
+components/       看组件
+api/              看接口
+vite.config.ts    Vite 项目配置
+next.config.js    Next.js 项目配置
+.env              环境变量</code></pre></div>
+<p>如果看到：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>package.json + vite.config.ts</code></pre></div>
+<p>大概率是 React / Vite 项目。</p>
+<p>如果看到：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>package.json + next.config.js + app/</code></pre></div>
+<p>大概率是 Next.js 项目。</p>
+<p>如果看到：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>requirements.txt / pyproject.toml + main.py</code></pre></div>
+<p>大概率是 Python 后端项目。</p>
+<hr>
+<h3 id="15-课后复盘">15. 课后复盘</h3>
+<p>请用自己的话回答：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. JavaScript 和 TypeScript 有什么关系？
+2. Node.js 和 JavaScript 是什么关系？
+3. React 解决什么问题？
+4. Next.js 和 React 有什么关系？
+5. npm 和 package.json 分别是什么？
+6. Python 为什么在 AI 工程里常见？
+7. 看到一个项目时，应先看哪些文件判断它是什么技术栈？</code></pre></div>
+<hr>
+<h3 id="16-参考资料">16. 参考资料</h3>
+<ul><li>React 官方文档：React 是用于 Web 和 Native 用户界面的库，通过 components 构建 UI。  </li></ul>
+<p>https://react.dev/</p>
+<ul><li>Node.js 官方网站：Node.js 是免费、开源、跨平台的 JavaScript runtime environment，可用于创建服务器、Web 应用、命令行工具和脚本。  </li></ul>
+<p>https://nodejs.org/en</p>
+<ul><li>TypeScript 官方文档：TypeScript 是在 JavaScript 之上增加类型系统的语言。  </li></ul>
+<p>https://www.typescriptlang.org/docs/</p>
+<hr>
+    </article>
+    <nav class="bottom-nav"><a href="lesson-01.html">上一课</a><a href="../index.html">返回课程首页</a><a href="lesson-03.html">下一课</a></nav>
+  </main>
+  <aside class="toc-panel"><p>本课目录</p><a class="toc-link level-3" href="#1-知识树定位">1. 知识树定位</a>
+<a class="toc-link level-3" href="#2-先建立一个大比喻">2. 先建立一个大比喻</a>
+<a class="toc-link level-3" href="#3-javascript-是什么？">3. JavaScript 是什么？</a>
+<a class="toc-link level-3" href="#4-typescript-是什么？">4. TypeScript 是什么？</a>
+<a class="toc-link level-3" href="#5-node-js-是什么？">5. Node.js 是什么？</a>
+<a class="toc-link level-3" href="#6-react-是什么？">6. React 是什么？</a>
+<a class="toc-link level-3" href="#7-next-js-是什么？">7. Next.js 是什么？</a>
+<a class="toc-link level-3" href="#8-vite-是什么？">8. Vite 是什么？</a>
+<a class="toc-link level-3" href="#9-python-是什么？">9. Python 是什么？</a>
+<a class="toc-link level-3" href="#10-npm-是什么？">10. npm 是什么？</a>
+<a class="toc-link level-3" href="#11-package-json-是什么？">11. package.json 是什么？</a>
+<a class="toc-link level-3" href="#12-git-github-是什么？">12. Git / GitHub 是什么？</a>
+<a class="toc-link level-3" href="#13-这些词之间的关系">13. 这些词之间的关系</a>
+<a class="toc-link level-3" href="#14-实战判断">14. 实战判断</a>
+<a class="toc-link level-3" href="#15-课后复盘">15. 课后复盘</a>
+<a class="toc-link level-3" href="#16-参考资料">16. 参考资料</a></aside>
+</div>
+<script src="../assets/site.js"></script>
+</body>
+</html>

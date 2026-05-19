@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 04 课｜数据库与 AI 产品数据结构</title>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="lesson-page">
+<div class="reader-shell" data-page="lesson" data-lesson="4">
+  <aside class="course-sidebar">
+    <a class="brand" href="../index.html"><span>AI</span><strong>应用工程课程</strong></a>
+    <div class="sidebar-section"><p>课程导航</p><a class="lesson-link" href="lesson-01.html" data-lesson="1"><span>01</span><strong>AI App 和普通 App 的工程差异</strong></a>
+<a class="lesson-link" href="lesson-02.html" data-lesson="2"><span>02</span><strong>基础开发词典：JS、TS、Node、React、Python、npm</strong></a>
+<a class="lesson-link" href="lesson-03.html" data-lesson="3"><span>03</span><strong>普通后端基础：API、Server、Database、Auth、Storage、Queue、Logs</strong></a>
+<a class="lesson-link active" href="lesson-04.html" data-lesson="4"><span>04</span><strong>数据库与 AI 产品数据结构</strong></a>
+<a class="lesson-link" href="lesson-05.html" data-lesson="5"><span>05</span><strong>第 1 周总复盘：从普通 App 到 AI App 后端总图</strong></a>
+<a class="lesson-link" href="lesson-06.html" data-lesson="6"><span>06</span><strong>LLM API 基础：模型如何被产品调用</strong></a>
+<a class="lesson-link" href="lesson-07.html" data-lesson="7"><span>07</span><strong>Prompt Engineering：模型任务协议设计</strong></a>
+<a class="lesson-link" href="lesson-08.html" data-lesson="8"><span>08</span><strong>Structured Output：可被程序使用的结构化结果</strong></a>
+<a class="lesson-link" href="lesson-09.html" data-lesson="9"><span>09</span><strong>Context Engineering：模型本次可见信息的组织方法</strong></a>
+<a class="lesson-link" href="lesson-10.html" data-lesson="10"><span>10</span><strong>RAG / Knowledge Base：让模型使用可靠外部知识</strong></a>
+<a class="lesson-link" href="lesson-11.html" data-lesson="11"><span>11</span><strong>Memory 系统：面向未来任务的状态管理</strong></a>
+<a class="lesson-link" href="lesson-12.html" data-lesson="12"><span>12</span><strong>Tool Calling / Function Calling / MCP：从语言输出到系统动作</strong></a>
+<a class="lesson-link" href="lesson-13.html" data-lesson="13"><span>13</span><strong>Workflow vs Agent：AI 系统编排方式的边界</strong></a>
+<a class="lesson-link" href="lesson-14.html" data-lesson="14"><span>14</span><strong>Harness 工程：把模型纳入可控运行系统</strong></a>
+<a class="lesson-link" href="lesson-15.html" data-lesson="15"><span>15</span><strong>Model Selection / Model Routing：按任务选择合适模型</strong></a>
+<a class="lesson-link" href="lesson-16.html" data-lesson="16"><span>16</span><strong>Guardrails / Safety：AI 系统安全护栏</strong></a>
+<a class="lesson-link" href="lesson-17.html" data-lesson="17"><span>17</span><strong>Evals / Evaluation：将失败案例沉淀为测试集</strong></a>
+<a class="lesson-link" href="lesson-18.html" data-lesson="18"><span>18</span><strong>Observability / Tracing / Logs：让 AI 行为可回放、可解释、可定位</strong></a>
+<a class="lesson-link" href="lesson-19.html" data-lesson="19"><span>19</span><strong>Deployment / LLMOps：从 Demo 到可上线系统</strong></a>
+<a class="lesson-link" href="lesson-20.html" data-lesson="20"><span>20</span><strong>主流框架与实现参考：框架作为工程实现方式</strong></a></div>
+  </aside>
+  <main class="lesson-main">
+    <nav class="topbar">
+      <a href="../index.html">首页</a>
+      <a href="lesson-03.html">上一课</a>
+      <a href="lesson-05.html">下一课</a>
+      <button class="complete-btn" type="button" data-complete-toggle="4">标记完成</button>
+    </nav>
+    <header class="lesson-hero">
+      <div class="lesson-kicker">第 04 课 · Week 1</div>
+      <h1>数据库与 AI 产品数据结构</h1>
+      <p>理解 AI 产品相对普通应用增加的数据对象，以及它们在请求链路中的位置。</p>
+      <div class="tag-row"><span>数据模型</span><span>日志</span><span>评测样本</span></div>
+    </header>
+    <section class="lesson-tools">
+      <label><span>本课搜索</span><input type="search" class="page-search" placeholder="输入关键词，定位正文内容"></label>
+      <div class="font-controls" aria-label="字体大小"><button type="button" data-font="smaller">A-</button><button type="button" data-font="larger">A+</button></div>
+    </section>
+    <article class="lesson-content" id="content">
+      <section class="classroom-block">
+        <h2>课程目标</h2>
+        <p>理解 AI 产品相对普通应用增加的数据对象，以及它们在请求链路中的位置。</p>
+      </section>
+<h3 id="1-本课问题域？">1. 本课问题域？</h3>
+<p>当前阶段要先建立一个关键认知：</p>
+<blockquote><p><strong>AI 产品并非只存聊天记录。</strong></p></blockquote>
+<p>普通 App 的数据库主要存用户、订单、内容、设置、日志。 AI App 除了这些，还要存：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户状态
+对话历史
+消息内容
+长期记忆
+知识库索引
+文件与图片
+工具调用结果
+模型调用日志
+安全检查记录
+评测样本</code></pre></div>
+<p>如果不理解数据结构，就很难判断后续开发讨论中的以下内容：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户表怎么设计？
+记忆表怎么设计？
+对话历史放哪里？
+RAG 文档放哪里？
+模型调用日志要不要存？
+为什么要有 eval dataset？</code></pre></div>
+<hr>
+<h3 id="2-先从普通-app-数据库理解">2. 先从普通 App 数据库理解</h3>
+<p>数据库可以先理解成：</p>
+<blockquote><p><strong>产品长期记东西的地方。</strong></p></blockquote>
+<p>但它并非一个大号 Excel。 数据库里的数据通常按“对象”组织。</p>
+<p>例如一个普通 App 至少会有：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>User 用户
+Post 内容
+Comment 评论
+Order 订单
+Payment 支付
+Notification 通知
+Log 日志</code></pre></div>
+<p>每一种对象通常会对应一张表。</p>
+<p>简单理解：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户表：记录用户是谁
+内容表：记录用户发了什么
+订单表：记录用户买了什么
+日志表：记录系统发生过什么</code></pre></div>
+<hr>
+<h3 id="3-ai-app-的数据对象为什么更多？">3. AI App 的数据对象为什么更多？</h3>
+<p>因为 AI App 多了几个普通 App 没有的东西：</p>
+<div class="table-wrap"><table><thead><tr><th>AI 特有对象</th><th>为什么需要</th></tr></thead><tbody><tr><td>Conversation 会话</td><td>一段连续对话的容器</td></tr><tr><td>Message 消息</td><td>用户和 AI 的每一轮发言</td></tr><tr><td>Memory 记忆</td><td>从历史中提取出的长期有用信息</td></tr><tr><td>Knowledge Chunk 知识片段</td><td>RAG 检索用的外部知识</td></tr><tr><td>Embedding 向量</td><td>让系统能做语义检索</td></tr><tr><td>Tool Call 工具调用</td><td>记录模型调用过什么工具</td></tr><tr><td>Model Run 模型运行</td><td>记录一次模型调用的输入、输出、成本、耗时</td></tr><tr><td>Guardrail Result 安全检查结果</td><td>记录输入/输出有没有触发风险</td></tr><tr><td>Eval Case 评测样本</td><td>把失败案例沉淀成测试集</td></tr></tbody></table></div>
+<p>这就是 AI App 数据结构和普通 App 最大的区别。</p>
+<hr>
+<h3 id="4-学习者需要先掌握的-10-个核心数据对象">4. 学习者需要先掌握的 10 个核心数据对象</h3>
+<h3 id="4-1-user-用户">4.1 User 用户</h3>
+<p>用户是谁。</p>
+<p>可能包含：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>id
+手机号 / 邮箱 / 第三方登录 id
+昵称
+创建时间
+当前阶段
+偏好设置
+权限状态</code></pre></div>
+<p>在学习者的理解里，User 是所有数据的根。</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>一个用户
+→ 有很多会话
+→ 有很多消息
+→ 有很多记忆
+→ 有很多记录
+→ 有很多文件</code></pre></div>
+<hr>
+<h3 id="4-2-session-conversation-会话">4.2 Session / Conversation 会话</h3>
+<p>一次对话或一段任务的容器。</p>
+<p>例如：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>今天的一次陪伴对话
+一次检查报告解释
+一次问医生清单生成
+一次夜间紧急咨询</code></pre></div>
+<p>Conversation 并非消息本身，核心是消息的上层容器。</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Conversation
+├─ Message 1：用户问
+├─ Message 2：AI 答
+├─ Message 3：用户追问
+└─ Message 4：AI 继续答</code></pre></div>
+<hr>
+<h3 id="4-3-message-消息">4.3 Message 消息</h3>
+<p>用户和 AI 的每一条发言。</p>
+<p>可能包含：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>id
+conversation_id
+user_id
+role: user / assistant / system / tool
+content
+created_at
+metadata</code></pre></div>
+<p><code>role</code> 很关键：</p>
+<div class="table-wrap"><table><thead><tr><th>role</th><th>含义</th></tr></thead><tbody><tr><td>user</td><td>用户说的话</td></tr><tr><td>assistant</td><td>AI 回复</td></tr><tr><td>system</td><td>系统指令或隐藏规则</td></tr><tr><td>tool</td><td>工具调用返回结果</td></tr></tbody></table></div>
+<p>需要知道：模型调用时，后端经常会把一组 messages 传给模型。</p>
+<hr>
+<h3 id="4-4-user-state-用户状态">4.4 User State 用户状态</h3>
+<p>用户当前处于什么状态。</p>
+<p>例如：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>当前阶段
+当前任务
+最近一次重要事件
+是否有未完成提醒
+是否存在风险标记
+最近是否在处理某个问题</code></pre></div>
+<p>User State 和 Memory 不一样。</p>
+<div class="table-wrap"><table><thead><tr><th>概念</th><th>解释</th></tr></thead><tbody><tr><td>User State</td><td>当前状态，偏实时</td></tr><tr><td>Memory</td><td>长期有用信息，偏长期</td></tr><tr><td>Message</td><td>原始对话记录</td></tr><tr><td>Profile</td><td>用户基础资料</td></tr></tbody></table></div>
+<hr>
+<h3 id="4-5-memory-记忆">4.5 Memory 记忆</h3>
+<p>Memory 不同于普通聊天记录，核心是系统从历史信息中抽取出的长期状态。</p>
+<p>例如：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户喜欢直接一点的表达
+用户不希望频繁收到提醒
+用户上次产检后比较焦虑
+用户经常担心某类检查指标
+用户希望家人版内容更简洁</code></pre></div>
+<p>Memory 通常并非所有内容都写入。 需要有策略：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>什么值得记？
+谁来判断是否写入？
+写入后什么时候读取？
+用户能不能删除？
+删除后还能不能被模型看到？</code></pre></div>
+<p>这就是后面 Memory 课程会重点讲的。</p>
+<hr>
+<h3 id="4-6-record-card-业务记录">4.6 Record / Card 业务记录</h3>
+<p>AI 产品里经常不只是聊天，还要把聊天结果沉淀成结构化记录。</p>
+<p>例如：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>检查解释记录
+问医生清单
+阶段总结
+家庭分享卡
+提醒事项
+回访事项
+资料识别结果</code></pre></div>
+<p>这些并非 Message，核心是业务对象。</p>
+<p>区别：</p>
+<div class="table-wrap"><table><thead><tr><th>类型</th><th>作用</th></tr></thead><tbody><tr><td>Message</td><td>对话本身</td></tr><tr><td>Record / Card</td><td>对话后沉淀出来的结构化结果</td></tr><tr><td>Memory</td><td>从历史中提炼出的长期有用状态</td></tr><tr><td>Log</td><td>系统运行记录</td></tr></tbody></table></div>
+<hr>
+<h3 id="4-7-file-asset-文件">4.7 File / Asset 文件</h3>
+<p>用户上传的图片、PDF、报告、语音等。</p>
+<p>可能包含：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>文件 id
+文件类型
+文件地址
+上传用户
+上传时间
+识别结果
+关联的会话
+关联的业务记录</code></pre></div>
+<p>注意：文件本身一般不直接存在数据库表里，核心是存在对象存储里。 数据库里通常存的是文件地址和元数据。</p>
+<p>简单理解：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>数据库：存文件信息
+对象存储：存真实文件</code></pre></div>
+<hr>
+<h3 id="4-8-knowledge-chunk-知识片段">4.8 Knowledge Chunk 知识片段</h3>
+<p>RAG 里用的知识通常会被切成小块。</p>
+<p>例如一篇文档：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>孕期饮食安全文档</code></pre></div>
+<p>会被切成：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>chunk 1：关于咖啡因
+chunk 2：关于生食
+chunk 3：关于叶酸
+chunk 4：关于高汞鱼类</code></pre></div>
+<p>每个 chunk 都可能有：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>chunk_id
+source_id
+title
+content
+metadata
+embedding
+created_at</code></pre></div>
+<p>这里的 embedding 是后面 RAG 课会讲的向量。</p>
+<hr>
+<h3 id="4-9-model-run-ai-call-log-模型调用日志">4.9 Model Run / AI Call Log 模型调用日志</h3>
+<p>每一次模型调用都应该可追踪。</p>
+<p>至少要知道：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用了哪个模型？
+输入了什么类型的上下文？
+输出是什么？
+耗时多久？
+花了多少钱？
+有没有报错？
+有没有调用工具？
+有没有触发安全检查？</code></pre></div>
+<p>这类日志对上线后非常关键。</p>
+<p>如果没有 Model Run 记录，后续无法回答：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>为什么这次 AI 答错了？
+它当时看了哪些上下文？
+是否模型问题？
+是否 Prompt 问题？
+是否 RAG 检索错了？
+是否 Memory 注入错了？</code></pre></div>
+<hr>
+<h3 id="4-10-eval-case-评测样本">4.10 Eval Case 评测样本</h3>
+<p>评测样本是 AI 产品从“靠感觉优化”走向“工程化优化”的基础。</p>
+<p>例如一次失败回复：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户问题：我今天胎动少了，怎么办？
+AI 错误回答：不用担心，休息一下就好。</code></pre></div>
+<p>这类失败案例不能只靠人记住，应该沉淀成 Eval Case：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>输入问题
+期望回答原则
+风险等级
+错误类型
+评分规则
+版本信息</code></pre></div>
+<p>以后每次改 Prompt、改模型、改 Harness，都要跑一遍这些测试。</p>
+<hr>
+<h3 id="5-最小-ai-app-数据结构总表">5. 最小 AI App 数据结构总表</h3>
+<p>暂时无需记忆字段，先记住对象。</p>
+<div class="table-wrap"><table><thead><tr><th>数据对象</th><th>属于哪一层</th><th>作用</th></tr></thead><tbody><tr><td>User</td><td>业务层</td><td>用户是谁</td></tr><tr><td>Profile</td><td>业务层</td><td>用户基础资料</td></tr><tr><td>Conversation</td><td>对话层</td><td>一段会话</td></tr><tr><td>Message</td><td>对话层</td><td>每一轮消息</td></tr><tr><td>User State</td><td>状态层</td><td>当前状态</td></tr><tr><td>Memory</td><td>记忆层</td><td>长期有用信息</td></tr><tr><td>Record / Card</td><td>业务沉淀层</td><td>AI 输出后的结构化结果</td></tr><tr><td>File / Asset</td><td>文件层</td><td>图片、报告、语音等</td></tr><tr><td>Knowledge Source</td><td>知识层</td><td>原始知识文档</td></tr><tr><td>Knowledge Chunk</td><td>RAG 层</td><td>可检索知识片段</td></tr><tr><td>Embedding</td><td>RAG 层</td><td>语义检索用向量</td></tr><tr><td>Tool Call</td><td>工具层</td><td>工具调用记录</td></tr><tr><td>Model Run</td><td>观测层</td><td>模型调用日志</td></tr><tr><td>Guardrail Result</td><td>安全层</td><td>安全检查结果</td></tr><tr><td>Eval Case</td><td>评测层</td><td>测试样本</td></tr><tr><td>Feedback</td><td>优化层</td><td>用户反馈和人工标注</td></tr></tbody></table></div>
+<hr>
+<h3 id="6-用一条真实链路理解这些数据">6. 用一条真实链路理解这些数据</h3>
+<p>用户上传一张检查报告，然后问：</p>
+<blockquote><p>“这个结果严重吗？”</p></blockquote>
+<p>系统可能发生：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. User：识别用户是谁
+2. File：保存上传的图片/PDF
+3. Conversation：创建一次检查解释会话
+4. Message：保存用户问题
+5. User State：读取当前阶段、最近事件
+6. Knowledge Chunk：检索相关医学知识
+7. Memory：读取用户长期偏好或历史担忧
+8. Model Run：调用模型生成解释
+9. Guardrail Result：检查是否越界诊断
+10. Record/Card：生成检查解释记录
+11. Message：保存 AI 回复
+12. Tool Call：如果调用 OCR 或数据库，也要记录
+13. Log：保存运行过程
+14. Eval Case：如果这次出错，可沉淀为评测样本</code></pre></div>
+<p>这就是为什么 AI 产品的数据结构比普通聊天 App 复杂。</p>
+<hr>
+<h3 id="7-少量代码-看懂数据模型长什么样">7. 少量代码：看懂数据模型长什么样</h3>
+<p>下面并非使学习者写代码，只是使学习者看懂“数据库对象”可能怎么表达。</p>
+<p>以 Prisma 风格举例：</p>
+<div class="code-block"><div class="code-label">prisma</div><button class="copy-code" type="button">复制</button><pre><code>model User {
+  id        String   @id
+  name      String?
+  createdAt DateTime @default(now())
+  messages  Message[]
+  memories  Memory[]
+}
+model Message {
+  id             String   @id
+  userId         String
+  conversationId String
+  role           String
+  content        String
+  createdAt      DateTime @default(now())
+}
+model Memory {
+  id        String   @id
+  userId    String
+  type      String
+  content   String
+  createdAt DateTime @default(now())
+}</code></pre></div>
+<p>只需看懂：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>User 表示用户
+Message 表示消息
+Memory 表示记忆
+userId 表示这些东西属于哪个用户</code></pre></div>
+<p>不要陷入语法细节。</p>
+<hr>
+<h3 id="8-实战判断-哪些数据一开始必须有？">8. 实战判断：哪些数据一开始必须有？</h3>
+<p>对于一个 AI App MVP，不要一开始把所有表都做满。</p>
+<p>优先级可以这样看：</p>
+<h3 id="p0-必须有">P0 必须有</h3>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>User
+Conversation
+Message
+Model Run
+基本 User State
+基础 Record/Card</code></pre></div>
+<h3 id="p1-应该很快有">P1 应该很快有</h3>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Memory
+File / Asset
+Tool Call
+Guardrail Result
+Feedback</code></pre></div>
+<h3 id="p2-后续完善">P2 后续完善</h3>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Knowledge Chunk
+Embedding
+Eval Case
+复杂版本管理
+精细权限系统</code></pre></div>
+<p>但对于高风险 AI 应用，<code>Model Run</code>、<code>Guardrail Result</code>、<code>Eval Case</code> 的重要性要提前考虑，不能等到上线后才补。</p>
+<hr>
+<h3 id="9-课后复盘">9. 课后复盘</h3>
+<p>请用自己的话回答：</p>
+<ol><li>为什么 AI 产品并非只存聊天记录？</li><li>Message、Memory、Record/Card、Log 分别是什么？</li><li>为什么 Model Run 对 AI 产品很重要？</li><li>RAG 里的 Knowledge Chunk 和普通业务数据有什么区别？</li><li>当前阶段的产品如果只做 MVP，至少需要哪些数据对象？</li><li>后续看开发方案时，应重点检查哪些数据对象是否遗漏？</li></ol>
+<hr>
+<h3 id="10-参考资料">10. 参考资料</h3>
+<ul><li>Prisma Schema 官方文档：理解数据模型和 schema 的基本概念  </li></ul>
+<p>https://www.prisma.io/docs/orm/prisma-schema/overview</p>
+<ul><li>Supabase Docs：理解 Postgres、Auth、Storage 等现代后端基础设施  </li></ul>
+<p>https://supabase.com/docs</p>
+<ul><li>OpenAI Agents SDK Tracing 文档：理解模型调用、工具调用、guardrails、trace 记录  </li></ul>
+<p>https://openai.github.io/openai-agents-python/tracing/</p>
+<hr>
+    </article>
+    <nav class="bottom-nav"><a href="lesson-03.html">上一课</a><a href="../index.html">返回课程首页</a><a href="lesson-05.html">下一课</a></nav>
+  </main>
+  <aside class="toc-panel"><p>本课目录</p><a class="toc-link level-3" href="#1-本课问题域？">1. 本课问题域？</a>
+<a class="toc-link level-3" href="#2-先从普通-app-数据库理解">2. 先从普通 App 数据库理解</a>
+<a class="toc-link level-3" href="#3-ai-app-的数据对象为什么更多？">3. AI App 的数据对象为什么更多？</a>
+<a class="toc-link level-3" href="#4-学习者需要先掌握的-10-个核心数据对象">4. 学习者需要先掌握的 10 个核心数据对象</a>
+<a class="toc-link level-3" href="#4-1-user-用户">4.1 User 用户</a>
+<a class="toc-link level-3" href="#4-2-session-conversation-会话">4.2 Session / Conversation 会话</a>
+<a class="toc-link level-3" href="#4-3-message-消息">4.3 Message 消息</a>
+<a class="toc-link level-3" href="#4-4-user-state-用户状态">4.4 User State 用户状态</a>
+<a class="toc-link level-3" href="#4-5-memory-记忆">4.5 Memory 记忆</a>
+<a class="toc-link level-3" href="#4-6-record-card-业务记录">4.6 Record / Card 业务记录</a>
+<a class="toc-link level-3" href="#4-7-file-asset-文件">4.7 File / Asset 文件</a>
+<a class="toc-link level-3" href="#4-8-knowledge-chunk-知识片段">4.8 Knowledge Chunk 知识片段</a>
+<a class="toc-link level-3" href="#4-9-model-run-ai-call-log-模型调用日志">4.9 Model Run / AI Call Log 模型调用日志</a>
+<a class="toc-link level-3" href="#4-10-eval-case-评测样本">4.10 Eval Case 评测样本</a>
+<a class="toc-link level-3" href="#5-最小-ai-app-数据结构总表">5. 最小 AI App 数据结构总表</a>
+<a class="toc-link level-3" href="#6-用一条真实链路理解这些数据">6. 用一条真实链路理解这些数据</a>
+<a class="toc-link level-3" href="#7-少量代码-看懂数据模型长什么样">7. 少量代码：看懂数据模型长什么样</a>
+<a class="toc-link level-3" href="#8-实战判断-哪些数据一开始必须有？">8. 实战判断：哪些数据一开始必须有？</a>
+<a class="toc-link level-3" href="#p0-必须有">P0 必须有</a>
+<a class="toc-link level-3" href="#p1-应该很快有">P1 应该很快有</a>
+<a class="toc-link level-3" href="#p2-后续完善">P2 后续完善</a>
+<a class="toc-link level-3" href="#9-课后复盘">9. 课后复盘</a>
+<a class="toc-link level-3" href="#10-参考资料">10. 参考资料</a></aside>
+</div>
+<script src="../assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 19 课｜Deployment / LLMOps：从 Demo 到可上线系统</title>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="lesson-page">
+<div class="reader-shell" data-page="lesson" data-lesson="19">
+  <aside class="course-sidebar">
+    <a class="brand" href="../index.html"><span>AI</span><strong>应用工程课程</strong></a>
+    <div class="sidebar-section"><p>课程导航</p><a class="lesson-link" href="lesson-01.html" data-lesson="1"><span>01</span><strong>AI App 和普通 App 的工程差异</strong></a>
+<a class="lesson-link" href="lesson-02.html" data-lesson="2"><span>02</span><strong>基础开发词典：JS、TS、Node、React、Python、npm</strong></a>
+<a class="lesson-link" href="lesson-03.html" data-lesson="3"><span>03</span><strong>普通后端基础：API、Server、Database、Auth、Storage、Queue、Logs</strong></a>
+<a class="lesson-link" href="lesson-04.html" data-lesson="4"><span>04</span><strong>数据库与 AI 产品数据结构</strong></a>
+<a class="lesson-link" href="lesson-05.html" data-lesson="5"><span>05</span><strong>第 1 周总复盘：从普通 App 到 AI App 后端总图</strong></a>
+<a class="lesson-link" href="lesson-06.html" data-lesson="6"><span>06</span><strong>LLM API 基础：模型如何被产品调用</strong></a>
+<a class="lesson-link" href="lesson-07.html" data-lesson="7"><span>07</span><strong>Prompt Engineering：模型任务协议设计</strong></a>
+<a class="lesson-link" href="lesson-08.html" data-lesson="8"><span>08</span><strong>Structured Output：可被程序使用的结构化结果</strong></a>
+<a class="lesson-link" href="lesson-09.html" data-lesson="9"><span>09</span><strong>Context Engineering：模型本次可见信息的组织方法</strong></a>
+<a class="lesson-link" href="lesson-10.html" data-lesson="10"><span>10</span><strong>RAG / Knowledge Base：让模型使用可靠外部知识</strong></a>
+<a class="lesson-link" href="lesson-11.html" data-lesson="11"><span>11</span><strong>Memory 系统：面向未来任务的状态管理</strong></a>
+<a class="lesson-link" href="lesson-12.html" data-lesson="12"><span>12</span><strong>Tool Calling / Function Calling / MCP：从语言输出到系统动作</strong></a>
+<a class="lesson-link" href="lesson-13.html" data-lesson="13"><span>13</span><strong>Workflow vs Agent：AI 系统编排方式的边界</strong></a>
+<a class="lesson-link" href="lesson-14.html" data-lesson="14"><span>14</span><strong>Harness 工程：把模型纳入可控运行系统</strong></a>
+<a class="lesson-link" href="lesson-15.html" data-lesson="15"><span>15</span><strong>Model Selection / Model Routing：按任务选择合适模型</strong></a>
+<a class="lesson-link" href="lesson-16.html" data-lesson="16"><span>16</span><strong>Guardrails / Safety：AI 系统安全护栏</strong></a>
+<a class="lesson-link" href="lesson-17.html" data-lesson="17"><span>17</span><strong>Evals / Evaluation：将失败案例沉淀为测试集</strong></a>
+<a class="lesson-link" href="lesson-18.html" data-lesson="18"><span>18</span><strong>Observability / Tracing / Logs：让 AI 行为可回放、可解释、可定位</strong></a>
+<a class="lesson-link active" href="lesson-19.html" data-lesson="19"><span>19</span><strong>Deployment / LLMOps：从 Demo 到可上线系统</strong></a>
+<a class="lesson-link" href="lesson-20.html" data-lesson="20"><span>20</span><strong>主流框架与实现参考：框架作为工程实现方式</strong></a></div>
+  </aside>
+  <main class="lesson-main">
+    <nav class="topbar">
+      <a href="../index.html">首页</a>
+      <a href="lesson-18.html">上一课</a>
+      <a href="lesson-20.html">下一课</a>
+      <button class="complete-btn" type="button" data-complete-toggle="19">标记完成</button>
+    </nav>
+    <header class="lesson-hero">
+      <div class="lesson-kicker">第 19 课 · Week 4</div>
+      <h1>Deployment / LLMOps：从 Demo 到可上线系统</h1>
+      <p>理解环境变量、API Key、服务部署、迁移、队列、缓存、限流、监控、告警、回滚和成本控制。</p>
+      <div class="tag-row"><span>部署</span><span>LLMOps</span><span>成本控制</span></div>
+    </header>
+    <section class="lesson-tools">
+      <label><span>本课搜索</span><input type="search" class="page-search" placeholder="输入关键词，定位正文内容"></label>
+      <div class="font-controls" aria-label="字体大小"><button type="button" data-font="smaller">A-</button><button type="button" data-font="larger">A+</button></div>
+    </section>
+    <article class="lesson-content" id="content">
+      <section class="classroom-block">
+        <h2>课程目标</h2>
+        <p>理解环境变量、API Key、服务部署、迁移、队列、缓存、限流、监控、告警、回滚和成本控制。</p>
+      </section>
+<h3 id="1-知识树定位">1. 知识树定位</h3>
+<p>这一课位于学习者的知识结构图最底层：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>AI 应用工程
+└─ 生产化层 Deployment / LLMOps
+   ├─ Environment Variables
+   ├─ API Key 管理
+   ├─ Server Deployment
+   ├─ Database Migration
+   ├─ Queue / Async Jobs
+   ├─ Cache
+   ├─ Rate Limit
+   ├─ Monitoring / Alerting
+   ├─ Cost Control
+   ├─ Rollback
+   └─ Security / Privacy</code></pre></div>
+<p>前面 18 课解决的是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>AI 系统怎么设计
+模型怎么调用
+上下文怎么组织
+记忆怎么读写
+工具怎么执行
+Agent / Harness 怎么控制
+怎么安全、评测、观测</code></pre></div>
+<p>第 19 课解决的是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>这些东西怎么从 Demo 变成稳定运行的服务</code></pre></div>
+<hr>
+<h3 id="2-基础解释-什么是部署？">2. 基础解释：什么是部署？</h3>
+<p>可以先这样理解：</p>
+<blockquote><p><strong>部署 Deployment = 把本地能跑的代码，放到真实用户能访问的服务器 / 云平台上运行。</strong></p></blockquote>
+<p>一个本地 Demo 通常是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>学习者的电脑
+→ npm run dev
+→ http://localhost:5173
+→ 只在本机可见</code></pre></div>
+<p>一个上线服务是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>真实用户手机 / 浏览器
+→ 访问正式域名
+→ 请求进入云服务器
+→ 后端执行
+→ 数据库保存
+→ 模型 API 调用
+→ 日志记录
+→ 结果返回给用户</code></pre></div>
+<p>所以部署是一组工程交付动作，至少涉及：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>代码在哪里运行？
+数据存在哪里？
+API Key 怎么保护？
+服务挂了谁知道？
+模型超时怎么办？
+成本突然升高怎么办？
+线上错误怎么回滚？</code></pre></div>
+<hr>
+<h3 id="3-什么是-llmops？">3. 什么是 LLMOps？</h3>
+<p>LLMOps 可以理解为：</p>
+<blockquote><p><strong>围绕大模型应用的上线、监控、评测、成本、安全和版本管理。</strong></p></blockquote>
+<p>普通 DevOps 关心：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>服务能不能跑
+数据库是否正常
+接口是否报错
+服务器是否宕机</code></pre></div>
+<p>LLMOps 还要多关心：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>模型输出是否变差
+Prompt 版本是否稳定
+上下文是否拼错
+RAG 是否检索错内容
+Memory 是否错误注入
+Tool 是否被错误调用
+Token 成本是否异常
+模型延迟是否可接受</code></pre></div>
+<p>也就是说：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>DevOps 管软件稳定性
+LLMOps 管 AI 行为稳定性 + 软件稳定性</code></pre></div>
+<hr>
+<h3 id="4-ai-应用上线前必须理解的-10-个问题">4. AI 应用上线前必须理解的 10 个问题</h3>
+<h3 id="4-1-environment-variables-环境变量">4.1 Environment Variables：环境变量</h3>
+<p>环境变量就是：</p>
+<blockquote><p>不应该写死在代码里的配置。</p></blockquote>
+<p>例如：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>OPENAI_API_KEY
+DATABASE_URL
+REDIS_URL
+JWT_SECRET
+MODEL_NAME
+LOG_LEVEL</code></pre></div>
+<p>错误做法：</p>
+<div class="code-block"><div class="code-label">ts</div><button class="copy-code" type="button">复制</button><pre><code>const apiKey = &quot;sk-xxxxxxx&quot;</code></pre></div>
+<p>正确方向：</p>
+<div class="code-block"><div class="code-label">ts</div><button class="copy-code" type="button">复制</button><pre><code>const apiKey = process.env.OPENAI_API_KEY</code></pre></div>
+<p>无需掌握编写细节，但要能判断：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>API Key 不能写在前端
+API Key 不能提交到 GitHub
+API Key 应该放在服务端环境变量或密钥管理系统里</code></pre></div>
+<p>OpenAI API 文档也明确强调 API Key 是 secret，不应暴露在客户端代码中，应从环境变量或密钥管理服务中安全加载。</p>
+<hr>
+<h3 id="4-2-api-key-管理">4.2 API Key 管理</h3>
+<p>AI 产品通常会有很多 Key：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>OpenAI / Anthropic / Gemini API Key
+数据库连接 Key
+对象存储 Key
+短信服务 Key
+OCR 服务 Key
+支付服务 Key
+日志服务 Key</code></pre></div>
+<p>需要理解一个基本原则：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>前端不能直接拿核心 API Key 调模型</code></pre></div>
+<p>否则风险是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Key 被偷
+费用被刷爆
+用户绕过权限直接调用模型
+数据泄露</code></pre></div>
+<p>正确链路应该是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>前端
+→ 学习者的后端 API
+→ 后端读取安全保存的 API Key
+→ 后端调用模型
+→ 后端返回结果给前端</code></pre></div>
+<hr>
+<h3 id="4-3-server-deployment-后端服务部署">4.3 Server Deployment：后端服务部署</h3>
+<p>一个 AI App 后端可以部署在不同平台：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Vercel / Railway / Render / Fly.io
+AWS / GCP / Azure
+阿里云 / 腾讯云 / 火山云
+自建服务器</code></pre></div>
+<p>但当前阶段无需研究每个平台细节。需要先知道：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>前端部署 ≠ 后端部署 ≠ AI 服务部署 ≠ 数据库部署</code></pre></div>
+<p>常见结构：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户浏览器
+→ 前端 App
+→ API Server
+→ Database
+→ LLM Provider
+→ Logs / Monitoring</code></pre></div>
+<p>如果是复杂 AI 系统，还会多出：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Queue
+Worker
+Vector Database
+Object Storage
+Eval Pipeline
+Observability Platform</code></pre></div>
+<hr>
+<h3 id="4-4-database-migration-数据库迁移">4.4 Database Migration：数据库迁移</h3>
+<p>数据库结构会随产品演进而变化。</p>
+<p>产品迭代时会发生：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>新增用户字段
+新增记忆表
+新增 AI 调用日志表
+新增工具调用表
+修改消息结构
+修改记录结构</code></pre></div>
+<p>数据库迁移就是：</p>
+<blockquote><p><strong>用可追踪、可回滚的方式修改数据库结构。</strong></p></blockquote>
+<p>学习者需要知道：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>数据库结构不能靠开发手动乱改
+每次变更应该有 migration 文件
+线上数据库变更要谨慎</code></pre></div>
+<hr>
+<h3 id="4-5-queue-async-jobs-队列与异步任务">4.5 Queue / Async Jobs：队列与异步任务</h3>
+<p>部分任务适合进入异步队列，避免让用户同步等待。</p>
+<p>例如：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>上传检查报告 → OCR 识别
+生成阶段总结
+批量生成分享内容
+定时回访
+长期记忆抽取
+跑评测任务
+发通知</code></pre></div>
+<p>这些适合放进 Queue / Worker。</p>
+<p>同步请求：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户点一下
+→ 后端立即处理
+→ 用户等结果</code></pre></div>
+<p>异步任务：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户提交任务
+→ 后端先返回“已收到”
+→ 队列慢慢处理
+→ 处理完再通知 / 更新状态</code></pre></div>
+<p>需要形成的判断：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户必须立刻看到的 → 同步
+耗时、可延迟、可重试的 → 异步</code></pre></div>
+<hr>
+<h3 id="4-6-cache-缓存">4.6 Cache：缓存</h3>
+<p>缓存就是：</p>
+<blockquote><p>把经常用、短时间内不必重复计算的数据临时存起来。</p></blockquote>
+<p>AI 应用里可能缓存：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户阶段信息
+知识库检索结果
+模型生成的摘要
+高频配置
+权限信息</code></pre></div>
+<p>但不能随便缓存所有东西。尤其涉及：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户隐私
+医疗敏感信息
+记忆内容
+临时风险状态</code></pre></div>
+<p>缓存要谨慎。</p>
+<hr>
+<h3 id="4-7-rate-limit-限流">4.7 Rate Limit：限流</h3>
+<p>限流就是：</p>
+<blockquote><p>控制单位时间内可以请求多少次。</p></blockquote>
+<p>为什么重要？</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>防止恶意刷接口
+防止成本失控
+防止模型服务被打爆
+防止第三方 API 限制导致系统崩</code></pre></div>
+<p>OpenAI 官方文档说明，rate limits 是 API 在特定时间内对访问次数或访问量的限制；生产应用必须理解和规划 rate limits。</p>
+<p>学习者需要能问开发：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>单用户每分钟最多多少次 AI 请求？
+同一 IP 怎么限制？
+高成本模型怎么限制？
+重试有没有指数退避？
+模型超限时怎么降级？</code></pre></div>
+<hr>
+<h3 id="4-8-monitoring-alerting-监控与告警">4.8 Monitoring / Alerting：监控与告警</h3>
+<p>监控回答：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>系统现在是否正常？</code></pre></div>
+<p>告警回答：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>出问题时谁会知道？</code></pre></div>
+<p>AI 应用至少要监控：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>接口错误率
+模型调用失败率
+平均延迟
+P95 / P99 延迟
+Token 消耗
+单用户成本
+工具调用失败率
+RAG 检索失败率
+Memory 写入异常
+Guardrails 触发率</code></pre></div>
+<hr>
+<h3 id="4-9-cost-control-成本控制">4.9 Cost Control：成本控制</h3>
+<p>AI 应用成本需要同时关注服务器、模型调用和上下文规模。</p>
+<p>还包括：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>模型输入 token
+模型输出 token
+Embedding
+图片识别
+语音识别
+向量数据库
+日志存储
+评测调用
+重试调用</code></pre></div>
+<p>常见成本风险：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>上下文塞太长
+每轮都用最贵模型
+重复生成
+没有缓存
+失败后无限重试
+用户恶意刷接口
+日志和 trace 无限制存储</code></pre></div>
+<p>需要能够判断：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>是否所有任务都需要最强模型？
+是否所有历史都要塞进上下文？
+是否低价值任务可以用便宜模型？
+是否高成本功能需要次数限制？</code></pre></div>
+<hr>
+<h3 id="4-10-rollback-回滚">4.10 Rollback：回滚</h3>
+<p>AI 应用回滚范围不只包含代码，还要能回滚：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Prompt 版本
+模型版本
+RAG 知识库版本
+Memory 写入策略
+Tool 调用策略
+Guardrails 规则
+Harness 路由逻辑</code></pre></div>
+<p>普通软件回滚：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>代码版本 A → 代码版本 B → 出问题 → 回到 A</code></pre></div>
+<p>AI 系统回滚更复杂：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Prompt 改了
+模型换了
+RAG chunk 改了
+Memory 策略改了
+输出变差
+但代码没报错</code></pre></div>
+<p>所以需要知道：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>AI 系统的“坏”不一定是 bug
+也可能是输出质量下降、风险上升、成本变高、语气变差</code></pre></div>
+<hr>
+<h3 id="5-真实系统链路-一个-ai-请求上线后怎么跑？">5. 真实系统链路：一个 AI 请求上线后怎么跑？</h3>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户打开 App
+→ 登录态校验 Auth
+→ 前端发送 /api/chat
+→ 后端读取用户信息
+→ 检查请求频率 Rate Limit
+→ 读取数据库中的用户状态
+→ Harness 判断任务类型
+→ 组装 Context
+→ 必要时检索 RAG / 读取 Memory / 调 Tool
+→ 选择模型 Model Routing
+→ 调用 LLM API
+→ 记录 Trace / Logs
+→ Guardrails 检查输出
+→ 返回前端
+→ 写入消息记录 / 记忆候选 / 工具结果
+→ 异步任务进入 Queue
+→ 监控成本、延迟、错误</code></pre></div>
+<p>这条链路就是学习者应当能看懂的上线级 AI App 链路。</p>
+<hr>
+<h3 id="6-少量代码片段-只看结构">6. 少量代码片段：只看结构</h3>
+<h4 id="6-1-环境变量读取">6.1 环境变量读取</h4>
+<div class="code-block"><div class="code-label">ts</div><button class="copy-code" type="button">复制</button><pre><code>const apiKey = process.env.OPENAI_API_KEY</code></pre></div>
+<p>只需知道：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>process.env = 从运行环境读取配置
+OPENAI_API_KEY = 不应该写死在代码里</code></pre></div>
+<hr>
+<h4 id="6-2-一个简化的-ai-接口">6.2 一个简化的 AI 接口</h4>
+<div class="code-block"><div class="code-label">ts</div><button class="copy-code" type="button">复制</button><pre><code>app.post(&quot;/api/chat&quot;, async (req, res) =&gt; {
+  const userId = req.user.id
+  const message = req.body.message
+  await checkRateLimit(userId)
+  const userState = await db.userState.findUnique({ where: { userId } })
+  const context = await buildContext({ userId, message, userState })
+  const result = await callModel({
+    model: &quot;fast-model&quot;,
+    context,
+    message
+  })
+  await db.aiLog.create({
+    data: {
+      userId,
+      model: &quot;fast-model&quot;,
+      latencyMs: result.latency,
+      tokenUsed: result.tokens
+    }
+  })
+  res.json({ answer: result.text })
+})</code></pre></div>
+<p>无需记忆语法，只需要看懂结构：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>接请求
+→ 限流
+→ 查用户状态
+→ 组装上下文
+→ 调模型
+→ 写日志
+→ 返回结果</code></pre></div>
+<hr>
+<h3 id="7-常见误区">7. 常见误区</h3>
+<div class="table-wrap"><table><thead><tr><th>误区</th><th>正确判断</th></tr></thead><tbody><tr><td>Demo 能跑就能上线</td><td>Demo 只证明局部可行，不证明稳定、安全、成本可控</td></tr><tr><td>部署只是发布网站</td><td>AI 应用还涉及 Key、安全、日志、评测、回滚</td></tr><tr><td>成本只看模型单价</td><td>真正成本来自 token、重试、长上下文、评测、多模态、存储</td></tr><tr><td>线上问题都是代码 bug</td><td>AI 应用可能是 Prompt、Context、Memory、RAG、模型路由问题</td></tr><tr><td>日志可有可无</td><td>没日志就无法定位、复盘、评测、优化</td></tr><tr><td>API Key 可以放前端</td><td>严重错误，核心 Key 不能暴露在浏览器或 App 客户端</td></tr></tbody></table></div>
+<hr>
+<h3 id="8-参考资料">8. 参考资料</h3>
+<ul><li>OpenAI｜Production best practices  </li></ul>
+<p>https://developers.openai.com/api/docs/guides/production-best-practices</p>
+<ul><li>OpenAI｜Rate limits  </li></ul>
+<p>https://developers.openai.com/api/docs/guides/rate-limits</p>
+<ul><li>OpenAI｜API Authentication  </li></ul>
+<p>https://developers.openai.com/api/reference/overview</p>
+<ul><li>OpenAI｜Tracing - Agents SDK  </li></ul>
+<p>https://openai.github.io/openai-agents-python/tracing/</p>
+<ul><li>Vercel｜AI Cloud / Deployment Platform  </li></ul>
+<p>https://vercel.com/</p>
+<hr>
+<h3 id="9-学习产出">9. 学习产出</h3>
+<p>请写一页笔记：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>题目：AI App 上线前必须解决的 10 个问题
+至少回答：
+1. API Key 为什么不能放前端？
+2. Rate Limit 解决什么问题？
+3. Queue 适合处理哪些任务？
+4. Monitoring 和 Logs 有什么区别？
+5. AI 系统为什么需要 Prompt / Model / RAG / Memory 的版本回滚？
+6. 学习者的项目如果上线，最容易在哪些地方出风险？</code></pre></div>
+<hr>
+    </article>
+    <nav class="bottom-nav"><a href="lesson-18.html">上一课</a><a href="../index.html">返回课程首页</a><a href="lesson-20.html">下一课</a></nav>
+  </main>
+  <aside class="toc-panel"><p>本课目录</p><a class="toc-link level-3" href="#1-知识树定位">1. 知识树定位</a>
+<a class="toc-link level-3" href="#2-基础解释-什么是部署？">2. 基础解释：什么是部署？</a>
+<a class="toc-link level-3" href="#3-什么是-llmops？">3. 什么是 LLMOps？</a>
+<a class="toc-link level-3" href="#4-ai-应用上线前必须理解的-10-个问题">4. AI 应用上线前必须理解的 10 个问题</a>
+<a class="toc-link level-3" href="#4-1-environment-variables-环境变量">4.1 Environment Variables：环境变量</a>
+<a class="toc-link level-3" href="#4-2-api-key-管理">4.2 API Key 管理</a>
+<a class="toc-link level-3" href="#4-3-server-deployment-后端服务部署">4.3 Server Deployment：后端服务部署</a>
+<a class="toc-link level-3" href="#4-4-database-migration-数据库迁移">4.4 Database Migration：数据库迁移</a>
+<a class="toc-link level-3" href="#4-5-queue-async-jobs-队列与异步任务">4.5 Queue / Async Jobs：队列与异步任务</a>
+<a class="toc-link level-3" href="#4-6-cache-缓存">4.6 Cache：缓存</a>
+<a class="toc-link level-3" href="#4-7-rate-limit-限流">4.7 Rate Limit：限流</a>
+<a class="toc-link level-3" href="#4-8-monitoring-alerting-监控与告警">4.8 Monitoring / Alerting：监控与告警</a>
+<a class="toc-link level-3" href="#4-9-cost-control-成本控制">4.9 Cost Control：成本控制</a>
+<a class="toc-link level-3" href="#4-10-rollback-回滚">4.10 Rollback：回滚</a>
+<a class="toc-link level-3" href="#5-真实系统链路-一个-ai-请求上线后怎么跑？">5. 真实系统链路：一个 AI 请求上线后怎么跑？</a>
+<a class="toc-link level-3" href="#6-少量代码片段-只看结构">6. 少量代码片段：只看结构</a>
+<a class="toc-link level-4" href="#6-1-环境变量读取">6.1 环境变量读取</a>
+<a class="toc-link level-4" href="#6-2-一个简化的-ai-接口">6.2 一个简化的 AI 接口</a>
+<a class="toc-link level-3" href="#7-常见误区">7. 常见误区</a>
+<a class="toc-link level-3" href="#8-参考资料">8. 参考资料</a>
+<a class="toc-link level-3" href="#9-学习产出">9. 学习产出</a></aside>
+</div>
+<script src="../assets/site.js"></script>
+</body>
+</html>

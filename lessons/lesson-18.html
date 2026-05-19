@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 18 课｜Observability / Tracing / Logs：让 AI 行为可回放、可解释、可定位</title>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="lesson-page">
+<div class="reader-shell" data-page="lesson" data-lesson="18">
+  <aside class="course-sidebar">
+    <a class="brand" href="../index.html"><span>AI</span><strong>应用工程课程</strong></a>
+    <div class="sidebar-section"><p>课程导航</p><a class="lesson-link" href="lesson-01.html" data-lesson="1"><span>01</span><strong>AI App 和普通 App 的工程差异</strong></a>
+<a class="lesson-link" href="lesson-02.html" data-lesson="2"><span>02</span><strong>基础开发词典：JS、TS、Node、React、Python、npm</strong></a>
+<a class="lesson-link" href="lesson-03.html" data-lesson="3"><span>03</span><strong>普通后端基础：API、Server、Database、Auth、Storage、Queue、Logs</strong></a>
+<a class="lesson-link" href="lesson-04.html" data-lesson="4"><span>04</span><strong>数据库与 AI 产品数据结构</strong></a>
+<a class="lesson-link" href="lesson-05.html" data-lesson="5"><span>05</span><strong>第 1 周总复盘：从普通 App 到 AI App 后端总图</strong></a>
+<a class="lesson-link" href="lesson-06.html" data-lesson="6"><span>06</span><strong>LLM API 基础：模型如何被产品调用</strong></a>
+<a class="lesson-link" href="lesson-07.html" data-lesson="7"><span>07</span><strong>Prompt Engineering：模型任务协议设计</strong></a>
+<a class="lesson-link" href="lesson-08.html" data-lesson="8"><span>08</span><strong>Structured Output：可被程序使用的结构化结果</strong></a>
+<a class="lesson-link" href="lesson-09.html" data-lesson="9"><span>09</span><strong>Context Engineering：模型本次可见信息的组织方法</strong></a>
+<a class="lesson-link" href="lesson-10.html" data-lesson="10"><span>10</span><strong>RAG / Knowledge Base：让模型使用可靠外部知识</strong></a>
+<a class="lesson-link" href="lesson-11.html" data-lesson="11"><span>11</span><strong>Memory 系统：面向未来任务的状态管理</strong></a>
+<a class="lesson-link" href="lesson-12.html" data-lesson="12"><span>12</span><strong>Tool Calling / Function Calling / MCP：从语言输出到系统动作</strong></a>
+<a class="lesson-link" href="lesson-13.html" data-lesson="13"><span>13</span><strong>Workflow vs Agent：AI 系统编排方式的边界</strong></a>
+<a class="lesson-link" href="lesson-14.html" data-lesson="14"><span>14</span><strong>Harness 工程：把模型纳入可控运行系统</strong></a>
+<a class="lesson-link" href="lesson-15.html" data-lesson="15"><span>15</span><strong>Model Selection / Model Routing：按任务选择合适模型</strong></a>
+<a class="lesson-link" href="lesson-16.html" data-lesson="16"><span>16</span><strong>Guardrails / Safety：AI 系统安全护栏</strong></a>
+<a class="lesson-link" href="lesson-17.html" data-lesson="17"><span>17</span><strong>Evals / Evaluation：将失败案例沉淀为测试集</strong></a>
+<a class="lesson-link active" href="lesson-18.html" data-lesson="18"><span>18</span><strong>Observability / Tracing / Logs：让 AI 行为可回放、可解释、可定位</strong></a>
+<a class="lesson-link" href="lesson-19.html" data-lesson="19"><span>19</span><strong>Deployment / LLMOps：从 Demo 到可上线系统</strong></a>
+<a class="lesson-link" href="lesson-20.html" data-lesson="20"><span>20</span><strong>主流框架与实现参考：框架作为工程实现方式</strong></a></div>
+  </aside>
+  <main class="lesson-main">
+    <nav class="topbar">
+      <a href="../index.html">首页</a>
+      <a href="lesson-17.html">上一课</a>
+      <a href="lesson-19.html">下一课</a>
+      <button class="complete-btn" type="button" data-complete-toggle="18">标记完成</button>
+    </nav>
+    <header class="lesson-hero">
+      <div class="lesson-kicker">第 18 课 · Week 4</div>
+      <h1>Observability / Tracing / Logs：让 AI 行为可回放、可解释、可定位</h1>
+      <p>掌握日志、Trace、Span、成本、延迟和失败分析在 AI 系统中的作用。</p>
+      <div class="tag-row"><span>Tracing</span><span>Logs</span><span>观测</span></div>
+    </header>
+    <section class="lesson-tools">
+      <label><span>本课搜索</span><input type="search" class="page-search" placeholder="输入关键词，定位正文内容"></label>
+      <div class="font-controls" aria-label="字体大小"><button type="button" data-font="smaller">A-</button><button type="button" data-font="larger">A+</button></div>
+    </section>
+    <article class="lesson-content" id="content">
+      <section class="classroom-block">
+        <h2>课程目标</h2>
+        <p>掌握日志、Trace、Span、成本、延迟和失败分析在 AI 系统中的作用。</p>
+      </section>
+<h3 id="1-这一课在知识树里的位置">1. 这一课在知识树里的位置</h3>
+<p>上一课讲 Evals：判断 AI 做得好不好。</p>
+<p>这一课讲 Observability / Tracing / Logs：看清 AI 到底做了什么。</p>
+<p>它属于：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>生产化层
+└─ 可观测性系统
+   ├─ Logs
+   ├─ Trace
+   ├─ Span
+   ├─ Model Call
+   ├─ Tool Call
+   ├─ Memory Read / Write
+   ├─ RAG Retrieval
+   ├─ Guardrail Result
+   ├─ Cost
+   ├─ Latency
+   └─ Error / Failure Analysis</code></pre></div>
+<h3 id="2-先区分三个词">2. 先区分三个词</h3>
+<h4 id="2-1-logs">2.1 Logs</h4>
+<p>Logs 是日志。</p>
+<p>它通常记录：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>某个时间
+某个用户
+发生了某个事件
+状态是什么
+有没有错误</code></pre></div>
+<p>例子：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>2026-05-19 10:32:01 user_123 called /api/chat model=gpt-xxx latency=2.4s</code></pre></div>
+<h4 id="2-2-trace">2.2 Trace</h4>
+<p>Trace 是一次完整请求或工作流的轨迹。</p>
+<p>它回答：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>这次 AI 请求从头到尾经历了哪些步骤？</code></pre></div>
+<p>例子：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户输入
+→ 任务分类
+→ 读取记忆
+→ RAG 检索
+→ 调用模型
+→ Output Guard
+→ 返回用户</code></pre></div>
+<h4 id="2-3-span">2.3 Span</h4>
+<p>Span 是 Trace 里的一个步骤。</p>
+<p>比如：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>一次模型调用是一个 span
+一次工具调用是一个 span
+一次 RAG 检索是一个 span
+一次 guardrail 检查是一个 span</code></pre></div>
+<p>可以这样理解：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Trace = 一整条链路
+Span = 链路里的每一个环节
+Log = 每个环节或事件的记录</code></pre></div>
+<h3 id="3-为什么-ai-系统特别需要-tracing？">3. 为什么 AI 系统特别需要 Tracing？</h3>
+<p>普通后端出错，常见原因是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>代码 bug
+数据库错误
+网络错误
+权限错误</code></pre></div>
+<p>AI 系统出错，还会多很多原因：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Prompt 不清楚
+Context 塞错了
+RAG 召回错了
+Memory 注入错了
+模型路由错了
+工具参数错了
+Guardrails 没拦住
+模型随机漂移
+输出格式不合规</code></pre></div>
+<p>因此不能只问：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>模型为什么答错？</code></pre></div>
+<p>需要追问：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>这一次请求到底经历了哪些步骤？
+每一步输入是什么？
+每一步输出是什么？
+哪个节点开始偏了？</code></pre></div>
+<p>这就是 tracing 的价值。</p>
+<h3 id="4-一次-ai-请求应该记录什么？">4. 一次 AI 请求应该记录什么？</h3>
+<p>最小 trace 字段建议：</p>
+<div class="table-wrap"><table><thead><tr><th>字段</th><th>说明</th></tr></thead><tbody><tr><td>trace_id</td><td>一次完整请求的编号</td></tr><tr><td>user_id</td><td>用户编号，注意隐私处理</td></tr><tr><td>session_id</td><td>会话编号</td></tr><tr><td>timestamp</td><td>时间</td></tr><tr><td>entry_point</td><td>从哪个页面或入口发起</td></tr><tr><td>task_type</td><td>任务类型</td></tr><tr><td>risk_level</td><td>风险等级</td></tr><tr><td>model</td><td>使用的模型</td></tr><tr><td>prompt_version</td><td>Prompt 版本</td></tr><tr><td>context_items</td><td>注入了哪些上下文</td></tr><tr><td>memory_read</td><td>读了哪些记忆</td></tr><tr><td>memory_write</td><td>写了哪些记忆</td></tr><tr><td>rag_query</td><td>检索 query</td></tr><tr><td>retrieved_docs</td><td>检索到的知识片段</td></tr><tr><td>tool_calls</td><td>调用了哪些工具</td></tr><tr><td>guardrail_results</td><td>安全检查结果</td></tr><tr><td>output_type</td><td>文本 / JSON / 工具结果</td></tr><tr><td>latency</td><td>延迟</td></tr><tr><td>cost</td><td>成本</td></tr><tr><td>error</td><td>错误</td></tr><tr><td>user_feedback</td><td>用户反馈</td></tr></tbody></table></div>
+<h3 id="5-tracing-帮助学习者回答什么问题？">5. Tracing 帮助学习者回答什么问题？</h3>
+<h4 id="问题-1-为什么这次答错？">问题 1：为什么这次答错？</h4>
+<p>Trace 可以用于观察：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>是否任务分类错了？
+是否上下文没带？
+是否 RAG 召回错了？
+是否模型路由到了便宜模型？
+是否 Output Guard 没拦住？</code></pre></div>
+<h4 id="问题-2-为什么成本变高？">问题 2：为什么成本变高？</h4>
+<p>Trace 可以看到：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>是否上下文太长？
+是否调用了太贵的模型？
+是否重复调用工具？
+是否一个请求触发多次模型调用？</code></pre></div>
+<h4 id="问题-3-为什么延迟变慢？">问题 3：为什么延迟变慢？</h4>
+<p>Trace 可以看到：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>是模型慢？
+是 RAG 检索慢？
+是工具慢？
+是数据库慢？
+是 guardrails 慢？</code></pre></div>
+<h4 id="问题-4-为什么用户不满意？">问题 4：为什么用户不满意？</h4>
+<p>Trace 可以结合用户反馈看：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户踩了差评
+→ 找到 trace
+→ 看模型看到了什么
+→ 看输出怎么生成
+→ 把这个案例加入 eval dataset</code></pre></div>
+<h3 id="6-少量代码-看懂-trace-的结构">6. 少量代码：看懂 trace 的结构</h3>
+<div class="code-block"><div class="code-label">ts</div><button class="copy-code" type="button">复制</button><pre><code>const trace = {
+  trace_id: &quot;trace_001&quot;,
+  user_id: &quot;user_123&quot;,
+  task_type: &quot;medical_question&quot;,
+  risk_level: &quot;medium&quot;,
+  model: &quot;reasoning-model&quot;,
+  prompt_version: &quot;v3.2&quot;,
+  spans: [
+    {
+      name: &quot;task_classification&quot;,
+      latency_ms: 180,
+      output: { task_type: &quot;medical_question&quot; }
+    },
+    {
+      name: &quot;memory_read&quot;,
+      latency_ms: 90,
+      output: { memories_used: 2 }
+    },
+    {
+      name: &quot;rag_retrieval&quot;,
+      latency_ms: 320,
+      output: { docs_found: 4 }
+    },
+    {
+      name: &quot;model_call&quot;,
+      latency_ms: 2400,
+      output_type: &quot;structured_json&quot;
+    },
+    {
+      name: &quot;output_guardrail&quot;,
+      latency_ms: 160,
+      output: { safe: true }
+    }
+  ],
+  total_latency_ms: 3150
+}</code></pre></div>
+<p>只需看懂：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>trace_id = 这次完整请求
+spans = 每个步骤
+latency_ms = 每一步耗时
+output = 每一步结果</code></pre></div>
+<h3 id="7-observability-和普通-logs-的区别">7. Observability 和普通 Logs 的区别</h3>
+<p>Logs 只说明发生了什么。</p>
+<p>Observability 要用于理解系统为什么这样表现。</p>
+<div class="table-wrap"><table><thead><tr><th>能力</th><th>只做 Logs</th><th>做 Observability</th></tr></thead><tbody><tr><td>查错误</td><td>可以</td><td>可以</td></tr><tr><td>看完整链路</td><td>不一定</td><td>可以</td></tr><tr><td>分析成本</td><td>很弱</td><td>可以</td></tr><tr><td>分析延迟</td><td>很弱</td><td>可以</td></tr><tr><td>复盘 AI 行为</td><td>很弱</td><td>可以</td></tr><tr><td>连接 Evals</td><td>很弱</td><td>可以</td></tr><tr><td>找到失败根因</td><td>很难</td><td>更可行</td></tr></tbody></table></div>
+<h3 id="8-ai-产品最小可观测系统">8. AI 产品最小可观测系统</h3>
+<p>第一版不需要很复杂，但至少要有：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 每次模型调用日志
+2. 每次工具调用日志
+3. 每次 RAG 检索日志
+4. 每次 Memory 读写日志
+5. 每次 Guardrails 结果
+6. 每次用户反馈
+7. 每次错误和降级
+8. 成本与延迟统计</code></pre></div>
+<p>没有这些，后续无法优化。</p>
+<h3 id="9-tracing-evals-harness-的关系">9. Tracing、Evals、Harness 的关系</h3>
+<p>三者关系是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Harness 控制流程
+Tracing 记录流程
+Evals 评价流程</code></pre></div>
+<p>更完整：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Harness 决定这次怎么跑
+→ Tracing 记录这次实际怎么跑
+→ Evals 判断这次跑得好不好
+→ 失败案例反哺 Harness / Prompt / Context / Model / Tool</code></pre></div>
+<p>这是 AI 应用工程的核心闭环。</p>
+<h3 id="10-参考资料">10. 参考资料</h3>
+<h4 id="资料-1-openai-agents-sdk-tracing">资料 1：OpenAI Agents SDK Tracing</h4>
+<p>重点看：Tracing 记录 LLM generations、tool calls、handoffs、guardrails 和 custom events。</p>
+<h4 id="资料-2-langsmith-observability">资料 2：LangSmith Observability</h4>
+<p>重点看：从 individual traces 到 production-wide metrics，如何监控 LLM 应用。</p>
+<h4 id="资料-3-langsmith-docs-home">资料 3：LangSmith Docs Home</h4>
+<p>重点看：observability、evaluation、deployment、platform setup 如何构成一体化 workflow。</p>
+<h3 id="11-课后复盘">11. 课后复盘</h3>
+<p>学习者需要能回答：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. Log、Trace、Span 分别是什么？
+2. 为什么 AI 系统比普通系统更需要 tracing？
+3. 一次 AI 请求至少应该记录哪些信息？
+4. Tracing 如何帮助发现成本和延迟问题？
+5. Tracing、Evals、Harness 三者是什么关系？
+6. 为什么没有 observability，就很难从 Demo 走向产品？</code></pre></div>
+<hr>
+<h3 id="阶段复盘">阶段复盘</h3>
+<p>这一组三课把“可上线 AI 系统”的底层闭环补上了。</p>
+<p>学习者需要记住一条主线：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Guardrails = 控制风险
+Evals = 判断好坏
+Tracing / Observability = 看清过程</code></pre></div>
+<p>它们和 Harness 的关系是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Harness 控制系统怎么跑
+Guardrails 限制系统不能乱跑
+Tracing 记录系统实际怎么跑
+Evals 判断系统跑得好不好</code></pre></div>
+<p>如果一个 AI 项目没有这三层，通常只能算 demo，不能算可靠产品。</p>
+<h3 id="本阶段应沉淀的-3-个文件">本阶段应沉淀的 3 个文件</h3>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>01｜Guardrails 节点图
+02｜Eval Dataset 示例
+03｜Trace 字段表</code></pre></div>
+    </article>
+    <nav class="bottom-nav"><a href="lesson-17.html">上一课</a><a href="../index.html">返回课程首页</a><a href="lesson-19.html">下一课</a></nav>
+  </main>
+  <aside class="toc-panel"><p>本课目录</p><a class="toc-link level-3" href="#1-这一课在知识树里的位置">1. 这一课在知识树里的位置</a>
+<a class="toc-link level-3" href="#2-先区分三个词">2. 先区分三个词</a>
+<a class="toc-link level-4" href="#2-1-logs">2.1 Logs</a>
+<a class="toc-link level-4" href="#2-2-trace">2.2 Trace</a>
+<a class="toc-link level-4" href="#2-3-span">2.3 Span</a>
+<a class="toc-link level-3" href="#3-为什么-ai-系统特别需要-tracing？">3. 为什么 AI 系统特别需要 Tracing？</a>
+<a class="toc-link level-3" href="#4-一次-ai-请求应该记录什么？">4. 一次 AI 请求应该记录什么？</a>
+<a class="toc-link level-3" href="#5-tracing-帮助学习者回答什么问题？">5. Tracing 帮助学习者回答什么问题？</a>
+<a class="toc-link level-4" href="#问题-1-为什么这次答错？">问题 1：为什么这次答错？</a>
+<a class="toc-link level-4" href="#问题-2-为什么成本变高？">问题 2：为什么成本变高？</a>
+<a class="toc-link level-4" href="#问题-3-为什么延迟变慢？">问题 3：为什么延迟变慢？</a>
+<a class="toc-link level-4" href="#问题-4-为什么用户不满意？">问题 4：为什么用户不满意？</a>
+<a class="toc-link level-3" href="#6-少量代码-看懂-trace-的结构">6. 少量代码：看懂 trace 的结构</a>
+<a class="toc-link level-3" href="#7-observability-和普通-logs-的区别">7. Observability 和普通 Logs 的区别</a>
+<a class="toc-link level-3" href="#8-ai-产品最小可观测系统">8. AI 产品最小可观测系统</a>
+<a class="toc-link level-3" href="#9-tracing-evals-harness-的关系">9. Tracing、Evals、Harness 的关系</a>
+<a class="toc-link level-3" href="#10-参考资料">10. 参考资料</a>
+<a class="toc-link level-4" href="#资料-1-openai-agents-sdk-tracing">资料 1：OpenAI Agents SDK Tracing</a>
+<a class="toc-link level-4" href="#资料-2-langsmith-observability">资料 2：LangSmith Observability</a>
+<a class="toc-link level-4" href="#资料-3-langsmith-docs-home">资料 3：LangSmith Docs Home</a>
+<a class="toc-link level-3" href="#11-课后复盘">11. 课后复盘</a>
+<a class="toc-link level-3" href="#阶段复盘">阶段复盘</a>
+<a class="toc-link level-3" href="#本阶段应沉淀的-3-个文件">本阶段应沉淀的 3 个文件</a></aside>
+</div>
+<script src="../assets/site.js"></script>
+</body>
+</html>

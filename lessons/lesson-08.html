@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 08 课｜Structured Output：可被程序使用的结构化结果</title>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="lesson-page">
+<div class="reader-shell" data-page="lesson" data-lesson="8">
+  <aside class="course-sidebar">
+    <a class="brand" href="../index.html"><span>AI</span><strong>应用工程课程</strong></a>
+    <div class="sidebar-section"><p>课程导航</p><a class="lesson-link" href="lesson-01.html" data-lesson="1"><span>01</span><strong>AI App 和普通 App 的工程差异</strong></a>
+<a class="lesson-link" href="lesson-02.html" data-lesson="2"><span>02</span><strong>基础开发词典：JS、TS、Node、React、Python、npm</strong></a>
+<a class="lesson-link" href="lesson-03.html" data-lesson="3"><span>03</span><strong>普通后端基础：API、Server、Database、Auth、Storage、Queue、Logs</strong></a>
+<a class="lesson-link" href="lesson-04.html" data-lesson="4"><span>04</span><strong>数据库与 AI 产品数据结构</strong></a>
+<a class="lesson-link" href="lesson-05.html" data-lesson="5"><span>05</span><strong>第 1 周总复盘：从普通 App 到 AI App 后端总图</strong></a>
+<a class="lesson-link" href="lesson-06.html" data-lesson="6"><span>06</span><strong>LLM API 基础：模型如何被产品调用</strong></a>
+<a class="lesson-link" href="lesson-07.html" data-lesson="7"><span>07</span><strong>Prompt Engineering：模型任务协议设计</strong></a>
+<a class="lesson-link active" href="lesson-08.html" data-lesson="8"><span>08</span><strong>Structured Output：可被程序使用的结构化结果</strong></a>
+<a class="lesson-link" href="lesson-09.html" data-lesson="9"><span>09</span><strong>Context Engineering：模型本次可见信息的组织方法</strong></a>
+<a class="lesson-link" href="lesson-10.html" data-lesson="10"><span>10</span><strong>RAG / Knowledge Base：让模型使用可靠外部知识</strong></a>
+<a class="lesson-link" href="lesson-11.html" data-lesson="11"><span>11</span><strong>Memory 系统：面向未来任务的状态管理</strong></a>
+<a class="lesson-link" href="lesson-12.html" data-lesson="12"><span>12</span><strong>Tool Calling / Function Calling / MCP：从语言输出到系统动作</strong></a>
+<a class="lesson-link" href="lesson-13.html" data-lesson="13"><span>13</span><strong>Workflow vs Agent：AI 系统编排方式的边界</strong></a>
+<a class="lesson-link" href="lesson-14.html" data-lesson="14"><span>14</span><strong>Harness 工程：把模型纳入可控运行系统</strong></a>
+<a class="lesson-link" href="lesson-15.html" data-lesson="15"><span>15</span><strong>Model Selection / Model Routing：按任务选择合适模型</strong></a>
+<a class="lesson-link" href="lesson-16.html" data-lesson="16"><span>16</span><strong>Guardrails / Safety：AI 系统安全护栏</strong></a>
+<a class="lesson-link" href="lesson-17.html" data-lesson="17"><span>17</span><strong>Evals / Evaluation：将失败案例沉淀为测试集</strong></a>
+<a class="lesson-link" href="lesson-18.html" data-lesson="18"><span>18</span><strong>Observability / Tracing / Logs：让 AI 行为可回放、可解释、可定位</strong></a>
+<a class="lesson-link" href="lesson-19.html" data-lesson="19"><span>19</span><strong>Deployment / LLMOps：从 Demo 到可上线系统</strong></a>
+<a class="lesson-link" href="lesson-20.html" data-lesson="20"><span>20</span><strong>主流框架与实现参考：框架作为工程实现方式</strong></a></div>
+  </aside>
+  <main class="lesson-main">
+    <nav class="topbar">
+      <a href="../index.html">首页</a>
+      <a href="lesson-07.html">上一课</a>
+      <a href="lesson-09.html">下一课</a>
+      <button class="complete-btn" type="button" data-complete-toggle="8">标记完成</button>
+    </nav>
+    <header class="lesson-hero">
+      <div class="lesson-kicker">第 08 课 · Week 2</div>
+      <h1>Structured Output：可被程序使用的结构化结果</h1>
+      <p>理解结构化输出如何把模型结果接入确定性软件流程。</p>
+      <div class="tag-row"><span>JSON</span><span>Schema</span><span>校验</span></div>
+    </header>
+    <section class="lesson-tools">
+      <label><span>本课搜索</span><input type="search" class="page-search" placeholder="输入关键词，定位正文内容"></label>
+      <div class="font-controls" aria-label="字体大小"><button type="button" data-font="smaller">A-</button><button type="button" data-font="larger">A+</button></div>
+    </section>
+    <article class="lesson-content" id="content">
+      <section class="classroom-block">
+        <h2>课程目标</h2>
+        <p>理解结构化输出如何把模型结果接入确定性软件流程。</p>
+      </section>
+<h3 id="1-课程目标">1. 课程目标</h3>
+<p>学完这一课，需要能回答：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 什么是 Structured Output？
+2. 为什么 AI 产品不能只返回自然语言？
+3. JSON、Schema、字段、枚举分别是什么？
+4. Structured Output 和 Tool Calling、Workflow、Evals 有什么关系？
+5. 为什么它是 Harness 工程的基础能力？</code></pre></div>
+<hr>
+<h3 id="2-定义">2. 定义</h3>
+<p><strong>Structured Output</strong> 就是让模型按照预设结构输出结果。</p>
+<p>反例：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>这份报告看起来没什么大问题，但有些指标建议下次问医生。</code></pre></div>
+<p>核心是这样：</p>
+<div class="code-block"><div class="code-label">json</div><button class="copy-code" type="button">复制</button><pre><code>{
+  &quot;summary&quot;: &quot;整体未发现明显高风险信号，但有 2 个指标建议复查时向医生确认。&quot;,
+  &quot;risk_level&quot;: &quot;medium&quot;,
+  &quot;key_points&quot;: [
+    &quot;指标 A 略高&quot;,
+    &quot;指标 B 需要结合孕周判断&quot;
+  ],
+  &quot;doctor_questions&quot;: [
+    &quot;这个指标是否需要复查？&quot;,
+    &quot;是否和当前孕周有关？&quot;
+  ],
+  &quot;should_create_record&quot;: true
+}</code></pre></div>
+<p>前者适合人读。 后者适合产品系统继续处理。</p>
+<hr>
+<h3 id="3-为什么真实产品需要结构化输出？">3. 为什么真实产品需要结构化输出？</h3>
+<p>产品后端除自然语言文本外，还需要触发可执行动作。</p>
+<p>例如模型输出后，系统可能要判断：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>要不要生成一张卡片？
+要不要写入空间记录？
+要不要触发回访？
+要不要提醒用户问医生？
+要不要进入风险流程？
+要不要调用另一个工具？
+要不要进入评测样本？</code></pre></div>
+<p>自然语言很难让程序稳定判断。 结构化输出可以。</p>
+<hr>
+<h3 id="4-基础概念-json-是什么？">4. 基础概念：JSON 是什么？</h3>
+<p>JSON 可以理解成一种标准数据格式。</p>
+<div class="code-block"><div class="code-label">json</div><button class="copy-code" type="button">复制</button><pre><code>{
+  &quot;name&quot;: &quot;小橙&quot;,
+  &quot;age&quot;: 1,
+  &quot;is_active&quot;: true,
+  &quot;tags&quot;: [&quot;AI&quot;, &quot;陪伴&quot;]
+}</code></pre></div>
+<p>只需知道：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>字符串：用引号包起来，例如 &quot;summary&quot;
+数字：例如 1、20、3.5
+布尔值：true / false
+数组：用 []，表示一组东西
+对象：用 {}，表示一组字段</code></pre></div>
+<hr>
+<h3 id="5-schema-是什么？">5. Schema 是什么？</h3>
+<p><strong>Schema</strong> 是结构规则。</p>
+<p>如果 JSON 是“结果”，Schema 就是“结果必须长什么样”。</p>
+<p>例如规定：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>risk_level 只能是 low / medium / high
+should_create_record 只能是 true / false
+doctor_questions 必须是一个列表
+summary 必须是一句话</code></pre></div>
+<p>这就是 Schema 的作用。</p>
+<hr>
+<h3 id="6-为什么枚举-enum-很重要？">6. 为什么枚举 enum 很重要？</h3>
+<p>枚举就是限定可选值。</p>
+<p>比如风险等级不能让模型随便写：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>有点危险
+还行
+不太妙
+可能要小心
+中等偏高</code></pre></div>
+<p>后端程序无法稳定判断。</p>
+<p>所以要规定：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>risk_level = low / medium / high / emergency</code></pre></div>
+<p>这样程序才能处理：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>low → 正常回复
+medium → 建议问医生
+high → 明确建议尽快咨询医生
+emergency → 触发紧急安全流程</code></pre></div>
+<hr>
+<h3 id="7-structured-output-在请求链路里的位置">7. Structured Output 在请求链路里的位置</h3>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户输入
+→ Harness 判断任务
+→ 选择 Prompt
+→ 组装 Context
+→ 调模型
+→ 模型返回 Structured Output
+→ 后端解析字段
+→ 决定产品动作
+→ 返回前端 / 写数据库 / 触发工具</code></pre></div>
+<p>关键点：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Structured Output 是模型输出和产品动作之间的桥。</code></pre></div>
+<hr>
+<h3 id="8-少量代码-只看结构">8. 少量代码：只看结构</h3>
+<div class="code-block"><div class="code-label">ts</div><button class="copy-code" type="button">复制</button><pre><code>const schema = {
+  type: &quot;object&quot;,
+  properties: {
+    summary: { type: &quot;string&quot; },
+    risk_level: { 
+      type: &quot;string&quot;, 
+      enum: [&quot;low&quot;, &quot;medium&quot;, &quot;high&quot;] 
+    },
+    should_create_record: { type: &quot;boolean&quot; },
+    doctor_questions: {
+      type: &quot;array&quot;,
+      items: { type: &quot;string&quot; }
+    }
+  },
+  required: [&quot;summary&quot;, &quot;risk_level&quot;, &quot;should_create_record&quot;]
+};</code></pre></div>
+<p>只需看懂：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>summary 是字符串
+risk_level 只能从 low / medium / high 里选
+should_create_record 是 true 或 false
+doctor_questions 是字符串列表
+required 表示必须有这些字段</code></pre></div>
+<hr>
+<h3 id="9-产品里常见的结构化输出类型">9. 产品里常见的结构化输出类型</h3>
+<h4 id="9-1-任务分类">9.1 任务分类</h4>
+<div class="code-block"><div class="code-label">json</div><button class="copy-code" type="button">复制</button><pre><code>{
+  &quot;task_type&quot;: &quot;report_explanation&quot;,
+  &quot;confidence&quot;: 0.87
+}</code></pre></div>
+<p>用途：让 Harness 知道下一步走哪个流程。</p>
+<hr>
+<h4 id="9-2-风险分类">9.2 风险分类</h4>
+<div class="code-block"><div class="code-label">json</div><button class="copy-code" type="button">复制</button><pre><code>{
+  &quot;risk_level&quot;: &quot;medium&quot;,
+  &quot;risk_reasons&quot;: [&quot;用户描述了持续不适&quot;, &quot;信息不足，需要医生确认&quot;]
+}</code></pre></div>
+<p>用途：决定是否触发 Guardrails。</p>
+<hr>
+<h4 id="9-3-内容卡片生成">9.3 内容卡片生成</h4>
+<div class="code-block"><div class="code-label">json</div><button class="copy-code" type="button">复制</button><pre><code>{
+  &quot;card_type&quot;: &quot;doctor_question_list&quot;,
+  &quot;title&quot;: &quot;下次产检可以问医生的 3 个问题&quot;,
+  &quot;items&quot;: [
+    &quot;这个指标是否需要复查？&quot;,
+    &quot;是否和当前孕周有关？&quot;,
+    &quot;饮食或作息上需要注意什么？&quot;
+  ]
+}</code></pre></div>
+<p>用途：前端可以直接渲染成卡片。</p>
+<hr>
+<h4 id="9-4-记忆写入判断">9.4 记忆写入判断</h4>
+<div class="code-block"><div class="code-label">json</div><button class="copy-code" type="button">复制</button><pre><code>{
+  &quot;should_write_memory&quot;: true,
+  &quot;memory_type&quot;: &quot;preference&quot;,
+  &quot;memory_text&quot;: &quot;用户希望回答更直接，不要过度安慰。&quot;
+}</code></pre></div>
+<p>用途：决定是否写入长期记忆。</p>
+<hr>
+<h4 id="9-5-工具调用前判断">9.5 工具调用前判断</h4>
+<div class="code-block"><div class="code-label">json</div><button class="copy-code" type="button">复制</button><pre><code>{
+  &quot;should_call_tool&quot;: true,
+  &quot;tool_name&quot;: &quot;search_medical_knowledge&quot;,
+  &quot;query&quot;: &quot;孕中期 胎动 减少 需要注意什么&quot;
+}</code></pre></div>
+<p>用途：让系统判断是否进入工具调用。</p>
+<hr>
+<h3 id="10-structured-output-和-tool-calling-的关系">10. Structured Output 和 Tool Calling 的关系</h3>
+<p>二者都和“结构”有关，但不一样。</p>
+<div class="table-wrap"><table><thead><tr><th>概念</th><th>作用</th></tr></thead><tbody><tr><td>Structured Output</td><td>让模型输出固定结构，供系统继续处理</td></tr><tr><td>Tool Calling</td><td>让模型请求调用某个工具，并传入结构化参数</td></tr></tbody></table></div>
+<p>简单说：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Structured Output = 输出结果结构化
+Tool Calling = 动作请求结构化</code></pre></div>
+<hr>
+<h3 id="11-structured-output-和-evals-的关系">11. Structured Output 和 Evals 的关系</h3>
+<p>结构化输出也让评测更容易。</p>
+<p>如果模型只输出自然语言，很难稳定评测：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>它有没有识别风险？
+它有没有生成医生问题？
+它有没有建议写入记录？</code></pre></div>
+<p>如果输出是 JSON，就可以直接检查：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>risk_level 是否正确
+doctor_questions 是否为空
+should_create_record 是否符合预期
+memory_type 是否越界</code></pre></div>
+<p>这就是为什么 Structured Output 是 Evals 的基础之一。</p>
+<hr>
+<h3 id="12-实战判断-什么时候必须结构化？">12. 实战判断：什么时候必须结构化？</h3>
+<p>这些场景必须结构化：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 任务分类
+2. 风险等级判断
+3. 是否写入记忆
+4. 是否生成卡片
+5. 是否调用工具
+6. 是否触发回访
+7. 是否进入人工审核
+8. 生成列表、表格、清单
+9. 进入评测系统</code></pre></div>
+<p>这些场景可以自然语言：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 用户直接看的一段解释
+2. 情绪陪伴回复
+3. 开放式聊天
+4. 总结后的自然表达</code></pre></div>
+<p>真实产品通常是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>模型同时输出：
+1. 给用户看的自然语言
+2. 给系统看的结构化字段</code></pre></div>
+<hr>
+<h3 id="13-权威资料">13. 权威资料</h3>
+<ol><li>OpenAI Structured Outputs  </li></ol>
+<p>https://developers.openai.com/api/docs/guides/structured-outputs</p>
+<ol><li>Azure OpenAI Structured Outputs  </li></ol>
+<p>https://learn.microsoft.com/en-us/azure/foundry/openai/how-to/structured-outputs</p>
+<ol><li>OpenAI Agents SDK  </li></ol>
+<p>https://developers.openai.com/api/docs/guides/agents</p>
+<hr>
+<h3 id="14-课后复盘">14. 课后复盘</h3>
+<p>请用自己的话回答：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 为什么 AI 产品不能只要自然语言？
+2. JSON 和 Schema 的区别是什么？
+3. enum 为什么重要？
+4. Structured Output 和 Tool Calling 有什么区别？
+5. Structured Output 为什么对 Harness 和 Evals 都重要？</code></pre></div>
+<hr>
+<h3 id="15-学习产出">15. 学习产出</h3>
+<p>请沉淀一个文件：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Structured Output 样例库.md</code></pre></div>
+<p>至少写 5 个结构：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 任务分类 JSON
+2. 风险判断 JSON
+3. 卡片生成 JSON
+4. 记忆写入 JSON
+5. 工具调用判断 JSON</code></pre></div>
+<hr>
+    </article>
+    <nav class="bottom-nav"><a href="lesson-07.html">上一课</a><a href="../index.html">返回课程首页</a><a href="lesson-09.html">下一课</a></nav>
+  </main>
+  <aside class="toc-panel"><p>本课目录</p><a class="toc-link level-3" href="#1-课程目标">1. 课程目标</a>
+<a class="toc-link level-3" href="#2-定义">2. 定义</a>
+<a class="toc-link level-3" href="#3-为什么真实产品需要结构化输出？">3. 为什么真实产品需要结构化输出？</a>
+<a class="toc-link level-3" href="#4-基础概念-json-是什么？">4. 基础概念：JSON 是什么？</a>
+<a class="toc-link level-3" href="#5-schema-是什么？">5. Schema 是什么？</a>
+<a class="toc-link level-3" href="#6-为什么枚举-enum-很重要？">6. 为什么枚举 enum 很重要？</a>
+<a class="toc-link level-3" href="#7-structured-output-在请求链路里的位置">7. Structured Output 在请求链路里的位置</a>
+<a class="toc-link level-3" href="#8-少量代码-只看结构">8. 少量代码：只看结构</a>
+<a class="toc-link level-3" href="#9-产品里常见的结构化输出类型">9. 产品里常见的结构化输出类型</a>
+<a class="toc-link level-4" href="#9-1-任务分类">9.1 任务分类</a>
+<a class="toc-link level-4" href="#9-2-风险分类">9.2 风险分类</a>
+<a class="toc-link level-4" href="#9-3-内容卡片生成">9.3 内容卡片生成</a>
+<a class="toc-link level-4" href="#9-4-记忆写入判断">9.4 记忆写入判断</a>
+<a class="toc-link level-4" href="#9-5-工具调用前判断">9.5 工具调用前判断</a>
+<a class="toc-link level-3" href="#10-structured-output-和-tool-calling-的关系">10. Structured Output 和 Tool Calling 的关系</a>
+<a class="toc-link level-3" href="#11-structured-output-和-evals-的关系">11. Structured Output 和 Evals 的关系</a>
+<a class="toc-link level-3" href="#12-实战判断-什么时候必须结构化？">12. 实战判断：什么时候必须结构化？</a>
+<a class="toc-link level-3" href="#13-权威资料">13. 权威资料</a>
+<a class="toc-link level-3" href="#14-课后复盘">14. 课后复盘</a>
+<a class="toc-link level-3" href="#15-学习产出">15. 学习产出</a></aside>
+</div>
+<script src="../assets/site.js"></script>
+</body>
+</html>

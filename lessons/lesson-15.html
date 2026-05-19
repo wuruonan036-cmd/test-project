@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 15 课｜Model Selection / Model Routing：按任务选择合适模型</title>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="lesson-page">
+<div class="reader-shell" data-page="lesson" data-lesson="15">
+  <aside class="course-sidebar">
+    <a class="brand" href="../index.html"><span>AI</span><strong>应用工程课程</strong></a>
+    <div class="sidebar-section"><p>课程导航</p><a class="lesson-link" href="lesson-01.html" data-lesson="1"><span>01</span><strong>AI App 和普通 App 的工程差异</strong></a>
+<a class="lesson-link" href="lesson-02.html" data-lesson="2"><span>02</span><strong>基础开发词典：JS、TS、Node、React、Python、npm</strong></a>
+<a class="lesson-link" href="lesson-03.html" data-lesson="3"><span>03</span><strong>普通后端基础：API、Server、Database、Auth、Storage、Queue、Logs</strong></a>
+<a class="lesson-link" href="lesson-04.html" data-lesson="4"><span>04</span><strong>数据库与 AI 产品数据结构</strong></a>
+<a class="lesson-link" href="lesson-05.html" data-lesson="5"><span>05</span><strong>第 1 周总复盘：从普通 App 到 AI App 后端总图</strong></a>
+<a class="lesson-link" href="lesson-06.html" data-lesson="6"><span>06</span><strong>LLM API 基础：模型如何被产品调用</strong></a>
+<a class="lesson-link" href="lesson-07.html" data-lesson="7"><span>07</span><strong>Prompt Engineering：模型任务协议设计</strong></a>
+<a class="lesson-link" href="lesson-08.html" data-lesson="8"><span>08</span><strong>Structured Output：可被程序使用的结构化结果</strong></a>
+<a class="lesson-link" href="lesson-09.html" data-lesson="9"><span>09</span><strong>Context Engineering：模型本次可见信息的组织方法</strong></a>
+<a class="lesson-link" href="lesson-10.html" data-lesson="10"><span>10</span><strong>RAG / Knowledge Base：让模型使用可靠外部知识</strong></a>
+<a class="lesson-link" href="lesson-11.html" data-lesson="11"><span>11</span><strong>Memory 系统：面向未来任务的状态管理</strong></a>
+<a class="lesson-link" href="lesson-12.html" data-lesson="12"><span>12</span><strong>Tool Calling / Function Calling / MCP：从语言输出到系统动作</strong></a>
+<a class="lesson-link" href="lesson-13.html" data-lesson="13"><span>13</span><strong>Workflow vs Agent：AI 系统编排方式的边界</strong></a>
+<a class="lesson-link" href="lesson-14.html" data-lesson="14"><span>14</span><strong>Harness 工程：把模型纳入可控运行系统</strong></a>
+<a class="lesson-link active" href="lesson-15.html" data-lesson="15"><span>15</span><strong>Model Selection / Model Routing：按任务选择合适模型</strong></a>
+<a class="lesson-link" href="lesson-16.html" data-lesson="16"><span>16</span><strong>Guardrails / Safety：AI 系统安全护栏</strong></a>
+<a class="lesson-link" href="lesson-17.html" data-lesson="17"><span>17</span><strong>Evals / Evaluation：将失败案例沉淀为测试集</strong></a>
+<a class="lesson-link" href="lesson-18.html" data-lesson="18"><span>18</span><strong>Observability / Tracing / Logs：让 AI 行为可回放、可解释、可定位</strong></a>
+<a class="lesson-link" href="lesson-19.html" data-lesson="19"><span>19</span><strong>Deployment / LLMOps：从 Demo 到可上线系统</strong></a>
+<a class="lesson-link" href="lesson-20.html" data-lesson="20"><span>20</span><strong>主流框架与实现参考：框架作为工程实现方式</strong></a></div>
+  </aside>
+  <main class="lesson-main">
+    <nav class="topbar">
+      <a href="../index.html">首页</a>
+      <a href="lesson-14.html">上一课</a>
+      <a href="lesson-16.html">下一课</a>
+      <button class="complete-btn" type="button" data-complete-toggle="15">标记完成</button>
+    </nav>
+    <header class="lesson-hero">
+      <div class="lesson-kicker">第 15 课 · Week 3</div>
+      <h1>Model Selection / Model Routing：按任务选择合适模型</h1>
+      <p>围绕质量、成本、延迟、上下文、多模态、工具稳定性和安全性设计模型路由。</p>
+      <div class="tag-row"><span>模型路由</span><span>成本</span><span>延迟</span></div>
+    </header>
+    <section class="lesson-tools">
+      <label><span>本课搜索</span><input type="search" class="page-search" placeholder="输入关键词，定位正文内容"></label>
+      <div class="font-controls" aria-label="字体大小"><button type="button" data-font="smaller">A-</button><button type="button" data-font="larger">A+</button></div>
+    </section>
+    <article class="lesson-content" id="content">
+      <section class="classroom-block">
+        <h2>课程目标</h2>
+        <p>围绕质量、成本、延迟、上下文、多模态、工具稳定性和安全性设计模型路由。</p>
+      </section>
+<h3 id="1-知识树定位">1. 知识树定位</h3>
+<p>这一课位于：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>LLM API
+→ Prompt / Context / RAG / Memory / Tool
+→ Workflow / Agent / Harness
+→ Model Selection / Model Routing
+→ Cost / Latency / Evals</code></pre></div>
+<p>模型路由是 Harness 的一个关键子能力。</p>
+<p>Harness 要决定：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>这次任务应该用哪个模型？
+是否需要推理模型？
+是否需要多模态模型？
+是否需要便宜模型？
+是否需要低延迟模型？
+失败时换哪个模型？</code></pre></div>
+<hr>
+<h3 id="2-核心结论">2. 核心结论</h3>
+<p>模型选型不属于本节重点：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>哪个模型最强，就全部用哪个。</code></pre></div>
+<p>核心是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>不同任务，用不同模型。</code></pre></div>
+<p>这叫 Model Routing。</p>
+<hr>
+<h3 id="3-为什么不能一个模型包打天下？">3. 为什么不能一个模型包打天下？</h3>
+<p>因为模型选择至少要平衡 6 个维度：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>质量
+成本
+延迟
+上下文长度
+多模态能力
+工具调用稳定性
+安全与可控性</code></pre></div>
+<p>最强模型通常：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>更贵
+更慢
+更适合复杂任务
+不一定适合所有高频小任务</code></pre></div>
+<p>轻量模型通常：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>更便宜
+更快
+适合分类、摘要、标题、简单结构化任务
+但不适合复杂推理和高风险判断</code></pre></div>
+<p>所以真实系统会做模型分工。</p>
+<hr>
+<h3 id="4-模型能力维度">4. 模型能力维度</h3>
+<h3 id="4-1-质量-quality">4.1 质量 Quality</h3>
+<p>回答是否准确、自然、稳定。</p>
+<p>适合关注：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>复杂解释
+长文本总结
+高质量陪伴回复
+结构化生成</code></pre></div>
+<h3 id="4-2-成本-cost">4.2 成本 Cost</h3>
+<p>每次调用要花多少钱。</p>
+<p>高频任务尤其要控制成本：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>任务分类
+标题生成
+轻量摘要
+记忆候选提取
+日志标签</code></pre></div>
+<h3 id="4-3-延迟-latency">4.3 延迟 Latency</h3>
+<p>用户等多久。</p>
+<p>对话产品尤其敏感：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户发一句话
+如果 8 秒没反应
+体验就会明显下降</code></pre></div>
+<p>低延迟任务应优先用更快模型，或者先流式返回。</p>
+<h3 id="4-4-上下文长度-context-window">4.4 上下文长度 Context Window</h3>
+<p>有些任务需要读长内容：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>长对话总结
+长报告解释
+多份检查记录对比
+用户历史记录回看</code></pre></div>
+<p>这类任务要考虑上下文长度和上下文压缩。</p>
+<h3 id="4-5-多模态-multimodal">4.5 多模态 Multimodal</h3>
+<p>涉及：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>图片
+检查单
+B 超截图
+语音
+PDF
+表格</code></pre></div>
+<p>需要支持图像、语音或文件处理的模型或工具链。</p>
+<h3 id="4-6-工具调用稳定性-tool-calling-stability">4.6 工具调用稳定性 Tool Calling Stability</h3>
+<p>有些模型更适合严格结构化输出和工具调用。</p>
+<p>如果任务需要：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>返回 JSON
+调用工具
+生成函数参数
+严格遵守 schema</code></pre></div>
+<p>模型的工具调用稳定性比“语言好不好听”更重要。</p>
+<h3 id="4-7-安全与可控性-safety-reliability">4.7 安全与可控性 Safety / Reliability</h3>
+<p>高风险任务需要更保守：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>医疗边界
+法律边界
+心理安全
+儿童安全
+隐私</code></pre></div>
+<p>并非“说得聪明”就够，还要稳定遵守边界。</p>
+<hr>
+<h3 id="5-典型模型路由表">5. 典型模型路由表</h3>
+<div class="table-wrap"><table><thead><tr><th>任务</th><th>适合模型类型</th><th>原因</th></tr></thead><tbody><tr><td>任务分类</td><td>轻量模型</td><td>快、便宜、结构化</td></tr><tr><td>标题 / 标签生成</td><td>轻量模型</td><td>高频低风险</td></tr><tr><td>普通聊天</td><td>中等模型</td><td>平衡质量、成本、速度</td></tr><tr><td>高质量陪伴回复</td><td>高质量语言模型</td><td>语气和细腻度重要</td></tr><tr><td>复杂问题整理</td><td>推理模型 / 高质量模型</td><td>需要多步分析</td></tr><tr><td>检查报告解释</td><td>高质量模型 + RAG</td><td>准确性与安全边界重要</td></tr><tr><td>图片检查单识别</td><td>多模态模型 / OCR 工具</td><td>需要图像理解</td></tr><tr><td>记忆候选提取</td><td>轻量或中等模型</td><td>结构化抽取</td></tr><tr><td>记忆冲突判断</td><td>推理模型</td><td>需要判断上下文和优先级</td></tr><tr><td>输出安全检查</td><td>轻量模型 + 规则 / 专用分类器</td><td>高频、规则清晰</td></tr><tr><td>深度研究</td><td>推理模型 + 工具</td><td>多步骤规划与综合</td></tr></tbody></table></div>
+<hr>
+<h3 id="6-routing-policy-模型路由策略">6. Routing Policy：模型路由策略</h3>
+<p>不要只写：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>默认用 GPT-5.5</code></pre></div>
+<p>要写成策略：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>if task_type == &quot;classification&quot;:
+    use small_fast_model
+if task_type == &quot;check_explanation&quot;:
+    use high_quality_model + rag
+if task_type == &quot;image_report&quot;:
+    use multimodal_model + ocr_tool
+if task_type == &quot;high_risk&quot;:
+    use conservative_model + guardrails + human_review
+if latency_sensitive:
+    use faster_model or stream first
+if model_error:
+    fallback to backup_model</code></pre></div>
+<hr>
+<h3 id="7-真实系统链路-用户上传一张检查单">7. 真实系统链路：用户上传一张检查单</h3>
+<p>模型路由并非只发生一次。</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户上传图片
+→ OCR / 多模态模型识别文字
+→ 轻量模型提取指标
+→ RAG 检索指标解释
+→ 高质量模型生成解释
+→ 安全检查模型判断是否越界
+→ 轻量模型生成标题和记录摘要
+→ 写入数据库和日志</code></pre></div>
+<p>这就是多模型协作。</p>
+<hr>
+<h3 id="8-少量代码片段-只看结构">8. 少量代码片段：只看结构</h3>
+<div class="code-block"><div class="code-label">ts</div><button class="copy-code" type="button">复制</button><pre><code>function selectModel(task) {
+  if (task.type === &quot;classification&quot;) {
+    return &quot;small-fast-model&quot;
+  }
+  if (task.type === &quot;image_report&quot;) {
+    return &quot;multimodal-model&quot;
+  }
+  if (task.type === &quot;complex_reasoning&quot;) {
+    return &quot;reasoning-model&quot;
+  }
+  if (task.type === &quot;safety_check&quot;) {
+    return &quot;safety-classifier&quot;
+  }
+  return &quot;general-chat-model&quot;
+}</code></pre></div>
+<p>只需理解：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>模型选择可以被代码策略控制
+并非所有任务都调用同一个模型</code></pre></div>
+<hr>
+<h3 id="9-fallback-model-失败降级">9. Fallback Model：失败降级</h3>
+<p>模型调用可能失败：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>超时
+限流
+成本太高
+返回格式错误
+工具调用失败
+质量不达标</code></pre></div>
+<p>系统要有 fallback：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>主模型失败 → 备用模型
+结构化输出失败 → 重新生成
+RAG 失败 → 明确提示信息不足
+安全检查失败 → 输出保守回复
+工具失败 → 告知用户稍后重试</code></pre></div>
+<hr>
+<h3 id="10-model-routing-和-evals-的关系">10. Model Routing 和 Evals 的关系</h3>
+<p>模型路由不能只靠感觉。</p>
+<p>学习者需要用评测验证：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>同一批样本
+模型 A 表现如何
+模型 B 表现如何
+模型 C 成本是多少
+延迟是多少
+错误类型是什么</code></pre></div>
+<p>最后做判断：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>这个任务用哪个模型最划算？
+哪个模型更稳定？
+哪个模型适合高风险场景？
+哪个模型可以作为 fallback？</code></pre></div>
+<p>所以模型路由和 Evals 强绑定。</p>
+<hr>
+<h3 id="11-常见误区">11. 常见误区</h3>
+<div class="table-wrap"><table><thead><tr><th>误区</th><th>正确理解</th></tr></thead><tbody><tr><td>最强模型最好</td><td>最适合任务的模型最好</td></tr><tr><td>便宜模型质量一定差</td><td>很多分类、摘要、标签任务轻量模型足够</td></tr><tr><td>推理模型适合所有任务</td><td>推理模型可能更慢、更贵，不适合高频简单任务</td></tr><tr><td>模型路由上线后再做</td><td>早期就要设计任务类型和路由策略</td></tr><tr><td>Fallback 可有可无</td><td>没 fallback，系统稳定性很差</td></tr><tr><td>模型选型只看效果</td><td>还要看成本、延迟、格式稳定性、工具调用能力</td></tr></tbody></table></div>
+<hr>
+<h3 id="12-本课实战判断">12. 本课实战判断</h3>
+<p>后续评审模型方案时，必须问：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 这个任务的质量要求是什么？
+2. 这个任务是否高频？
+3. 用户是否能等待？
+4. 是否需要多模态？
+5. 是否需要严格 JSON？
+6. 是否涉及风险边界？
+7. 是否有备用模型？
+8. 是否有评测样本验证？
+9. 是否有成本估算？
+10. 是否记录每次模型调用？</code></pre></div>
+<hr>
+<h3 id="13-课后复盘">13. 课后复盘</h3>
+<ol><li>为什么模型选型并非选“最强模型”？</li><li>模型路由和 Harness 有什么关系？</li><li>哪些任务适合轻量模型？</li><li>哪些任务适合推理模型？</li><li>为什么模型路由必须和 Evals 绑定？</li></ol>
+<hr>
+<h3 id="14-本课权威资料">14. 本课权威资料</h3>
+<ul><li>OpenAI Model Selection  </li></ul>
+<p>https://developers.openai.com/api/docs/guides/model-selection</p>
+<ul><li>OpenAI Reasoning Best Practices  </li></ul>
+<p>https://developers.openai.com/api/docs/guides/reasoning-best-practices</p>
+<ul><li>OpenAI Latency Optimization  </li></ul>
+<p>https://developers.openai.com/api/docs/guides/latency-optimization</p>
+<ul><li>OpenAI Models  </li></ul>
+<p>https://developers.openai.com/api/docs/models</p>
+<hr>
+<h3 id="阶段复盘">阶段复盘</h3>
+<p>这三课可以合成一个核心判断：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Workflow / Agent 决定“怎么执行”
+Harness 决定“怎么控制”
+Model Routing 决定“用哪个模型执行”</code></pre></div>
+<p>三者关系：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户输入
+→ Harness 识别任务
+→ 决定走 Workflow / Agent / Hybrid
+→ 组装 Context
+→ 读取 RAG / Memory / Tool
+→ 根据任务选择模型
+→ 输出前安全检查
+→ 写日志
+→ 进入 Evals</code></pre></div>
+<p>需要形成的最终判断：</p>
+<blockquote><p>AI 应用工程不能简化为“前端 + 模型 API”，核心是一个由任务识别、流程编排、上下文管理、模型路由、工具权限、安全检查、日志评测共同组成的运行系统。</p></blockquote>
+<hr>
+<h2 id="阶段学习产出">阶段学习产出</h2>
+<p>建议完成 5 个小文件：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>01｜Workflow vs Agent 判断表
+02｜Harness 控制层解释笔记
+03｜模型路由判断表
+04｜一次复杂请求的系统流转图
+05｜本批问题清单</code></pre></div>
+<hr>
+<h2 id="本批最终课后复盘">本批最终课后复盘</h2>
+<ol><li>什么时候应该用 Workflow，而并非 Agent？</li><li>Harness 为什么是“控制层”，并非一个模型或框架？</li><li>模型路由为什么和成本、延迟、评测都有关？</li><li>一个 AI App 如果没有 Harness，会出现哪些问题？</li><li>学习者的项目里，哪 3 个场景最适合 Workflow？哪 1 个场景可能需要 Agent？</li></ol>
+    </article>
+    <nav class="bottom-nav"><a href="lesson-14.html">上一课</a><a href="../index.html">返回课程首页</a><a href="lesson-16.html">下一课</a></nav>
+  </main>
+  <aside class="toc-panel"><p>本课目录</p><a class="toc-link level-3" href="#1-知识树定位">1. 知识树定位</a>
+<a class="toc-link level-3" href="#2-核心结论">2. 核心结论</a>
+<a class="toc-link level-3" href="#3-为什么不能一个模型包打天下？">3. 为什么不能一个模型包打天下？</a>
+<a class="toc-link level-3" href="#4-模型能力维度">4. 模型能力维度</a>
+<a class="toc-link level-3" href="#4-1-质量-quality">4.1 质量 Quality</a>
+<a class="toc-link level-3" href="#4-2-成本-cost">4.2 成本 Cost</a>
+<a class="toc-link level-3" href="#4-3-延迟-latency">4.3 延迟 Latency</a>
+<a class="toc-link level-3" href="#4-4-上下文长度-context-window">4.4 上下文长度 Context Window</a>
+<a class="toc-link level-3" href="#4-5-多模态-multimodal">4.5 多模态 Multimodal</a>
+<a class="toc-link level-3" href="#4-6-工具调用稳定性-tool-calling-stability">4.6 工具调用稳定性 Tool Calling Stability</a>
+<a class="toc-link level-3" href="#4-7-安全与可控性-safety-reliability">4.7 安全与可控性 Safety / Reliability</a>
+<a class="toc-link level-3" href="#5-典型模型路由表">5. 典型模型路由表</a>
+<a class="toc-link level-3" href="#6-routing-policy-模型路由策略">6. Routing Policy：模型路由策略</a>
+<a class="toc-link level-3" href="#7-真实系统链路-用户上传一张检查单">7. 真实系统链路：用户上传一张检查单</a>
+<a class="toc-link level-3" href="#8-少量代码片段-只看结构">8. 少量代码片段：只看结构</a>
+<a class="toc-link level-3" href="#9-fallback-model-失败降级">9. Fallback Model：失败降级</a>
+<a class="toc-link level-3" href="#10-model-routing-和-evals-的关系">10. Model Routing 和 Evals 的关系</a>
+<a class="toc-link level-3" href="#11-常见误区">11. 常见误区</a>
+<a class="toc-link level-3" href="#12-本课实战判断">12. 本课实战判断</a>
+<a class="toc-link level-3" href="#13-课后复盘">13. 课后复盘</a>
+<a class="toc-link level-3" href="#14-本课权威资料">14. 本课权威资料</a>
+<a class="toc-link level-3" href="#阶段复盘">阶段复盘</a>
+<a class="toc-link level-2" href="#阶段学习产出">阶段学习产出</a>
+<a class="toc-link level-2" href="#本批最终课后复盘">本批最终课后复盘</a></aside>
+</div>
+<script src="../assets/site.js"></script>
+</body>
+</html>

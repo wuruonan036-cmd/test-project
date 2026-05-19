@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 20 课｜主流框架与实现参考：框架作为工程实现方式</title>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="lesson-page">
+<div class="reader-shell" data-page="lesson" data-lesson="20">
+  <aside class="course-sidebar">
+    <a class="brand" href="../index.html"><span>AI</span><strong>应用工程课程</strong></a>
+    <div class="sidebar-section"><p>课程导航</p><a class="lesson-link" href="lesson-01.html" data-lesson="1"><span>01</span><strong>AI App 和普通 App 的工程差异</strong></a>
+<a class="lesson-link" href="lesson-02.html" data-lesson="2"><span>02</span><strong>基础开发词典：JS、TS、Node、React、Python、npm</strong></a>
+<a class="lesson-link" href="lesson-03.html" data-lesson="3"><span>03</span><strong>普通后端基础：API、Server、Database、Auth、Storage、Queue、Logs</strong></a>
+<a class="lesson-link" href="lesson-04.html" data-lesson="4"><span>04</span><strong>数据库与 AI 产品数据结构</strong></a>
+<a class="lesson-link" href="lesson-05.html" data-lesson="5"><span>05</span><strong>第 1 周总复盘：从普通 App 到 AI App 后端总图</strong></a>
+<a class="lesson-link" href="lesson-06.html" data-lesson="6"><span>06</span><strong>LLM API 基础：模型如何被产品调用</strong></a>
+<a class="lesson-link" href="lesson-07.html" data-lesson="7"><span>07</span><strong>Prompt Engineering：模型任务协议设计</strong></a>
+<a class="lesson-link" href="lesson-08.html" data-lesson="8"><span>08</span><strong>Structured Output：可被程序使用的结构化结果</strong></a>
+<a class="lesson-link" href="lesson-09.html" data-lesson="9"><span>09</span><strong>Context Engineering：模型本次可见信息的组织方法</strong></a>
+<a class="lesson-link" href="lesson-10.html" data-lesson="10"><span>10</span><strong>RAG / Knowledge Base：让模型使用可靠外部知识</strong></a>
+<a class="lesson-link" href="lesson-11.html" data-lesson="11"><span>11</span><strong>Memory 系统：面向未来任务的状态管理</strong></a>
+<a class="lesson-link" href="lesson-12.html" data-lesson="12"><span>12</span><strong>Tool Calling / Function Calling / MCP：从语言输出到系统动作</strong></a>
+<a class="lesson-link" href="lesson-13.html" data-lesson="13"><span>13</span><strong>Workflow vs Agent：AI 系统编排方式的边界</strong></a>
+<a class="lesson-link" href="lesson-14.html" data-lesson="14"><span>14</span><strong>Harness 工程：把模型纳入可控运行系统</strong></a>
+<a class="lesson-link" href="lesson-15.html" data-lesson="15"><span>15</span><strong>Model Selection / Model Routing：按任务选择合适模型</strong></a>
+<a class="lesson-link" href="lesson-16.html" data-lesson="16"><span>16</span><strong>Guardrails / Safety：AI 系统安全护栏</strong></a>
+<a class="lesson-link" href="lesson-17.html" data-lesson="17"><span>17</span><strong>Evals / Evaluation：将失败案例沉淀为测试集</strong></a>
+<a class="lesson-link" href="lesson-18.html" data-lesson="18"><span>18</span><strong>Observability / Tracing / Logs：让 AI 行为可回放、可解释、可定位</strong></a>
+<a class="lesson-link" href="lesson-19.html" data-lesson="19"><span>19</span><strong>Deployment / LLMOps：从 Demo 到可上线系统</strong></a>
+<a class="lesson-link active" href="lesson-20.html" data-lesson="20"><span>20</span><strong>主流框架与实现参考：框架作为工程实现方式</strong></a></div>
+  </aside>
+  <main class="lesson-main">
+    <nav class="topbar">
+      <a href="../index.html">首页</a>
+      <a href="lesson-19.html">上一课</a>
+      <a href="../index.html">下一课</a>
+      <button class="complete-btn" type="button" data-complete-toggle="20">标记完成</button>
+    </nav>
+    <header class="lesson-hero">
+      <div class="lesson-kicker">第 20 课 · Week 4</div>
+      <h1>主流框架与实现参考：框架作为工程实现方式</h1>
+      <p>把 Vercel AI SDK、LlamaIndex、LangGraph、OpenAI Agents SDK、Pydantic AI、Mem0 等放回底层知识结构。</p>
+      <div class="tag-row"><span>框架参考</span><span>选型</span><span>收官复盘</span></div>
+    </header>
+    <section class="lesson-tools">
+      <label><span>本课搜索</span><input type="search" class="page-search" placeholder="输入关键词，定位正文内容"></label>
+      <div class="font-controls" aria-label="字体大小"><button type="button" data-font="smaller">A-</button><button type="button" data-font="larger">A+</button></div>
+    </section>
+    <article class="lesson-content" id="content">
+      <section class="classroom-block">
+        <h2>课程目标</h2>
+        <p>把 Vercel AI SDK、LlamaIndex、LangGraph、OpenAI Agents SDK、Pydantic AI、Mem0 等放回底层知识结构。</p>
+      </section>
+<h3 id="1-知识树定位">1. 知识树定位</h3>
+<p>这一课不做“框架排行榜”。</p>
+<p>它解决的是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>底层知识点
+→ 对应有哪些实现工具
+→ 这些工具适合解决什么问题
+→ 如何判断是否需要它</code></pre></div>
+<p>需要形成的基本认知：</p>
+<blockquote><p><strong>框架是工程能力的封装，不等同于底层知识本体。</strong></p></blockquote>
+<p>错误学习方式：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>今天学 LangGraph
+明天学 CrewAI
+后天学 Mem0
+再看 Vercel AI SDK
+最后脑子里全是名字</code></pre></div>
+<p>正确学习方式：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>先理解：
+Workflow 是什么
+Agent 是什么
+Memory 是什么
+Tool Calling 是什么
+RAG 是什么
+Evals 是什么
+再看：
+哪个框架解决其中哪个问题</code></pre></div>
+<hr>
+<h3 id="2-主流实现参考总表">2. 主流实现参考总表</h3>
+<div class="table-wrap"><table><thead><tr><th>底层知识模块</th><th>主要问题</th><th>实现参考</th></tr></thead><tbody><tr><td>前端 AI 体验</td><td>聊天 UI、流式输出、Generative UI</td><td>Vercel AI SDK、assistant-ui、CopilotKit</td></tr><tr><td>LLM API 封装</td><td>模型调用、结构化输出、多模型适配</td><td>OpenAI SDK、Vercel AI SDK、Pydantic AI</td></tr><tr><td>RAG / Knowledge</td><td>文档处理、检索、向量库、问答</td><td>LlamaIndex、LangChain、Haystack</td></tr><tr><td>Memory</td><td>长期记忆、用户偏好、事件记忆、图谱记忆</td><td>Mem0、Letta / MemGPT、Zep / Graphiti、LlamaIndex Memory</td></tr><tr><td>Tool / MCP</td><td>外部工具、数据库、文件、API 连接</td><td>MCP SDK、OpenAI Tools、Vercel AI SDK Tools</td></tr><tr><td>Workflow / Agent</td><td>状态机、Agent 编排、多步骤执行</td><td>LangGraph、OpenAI Agents SDK、Google ADK、Pydantic AI、CrewAI、Agno</td></tr><tr><td>Evals / Observability</td><td>评测、trace、日志、质量回归</td><td>OpenAI Evals、LangSmith、Braintrust、Phoenix、Pydantic Logfire / Evals</td></tr><tr><td>Deployment</td><td>前端/后端部署、预览环境、云运行</td><td>Vercel、Railway、Render、Fly.io、AWS / GCP / Azure</td></tr></tbody></table></div>
+<hr>
+<h3 id="3-不同工具在知识结构里的位置">3. 不同工具在知识结构里的位置</h3>
+<h3 id="3-1-vercel-ai-sdk-前端-ai-体验-+-typescript-ai-调用">3.1 Vercel AI SDK：前端 AI 体验 + TypeScript AI 调用</h3>
+<p>适合理解：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>流式输出 Streaming
+React / Next.js AI 应用
+Tool Calling
+Structured Object
+前端和后端之间的 AI UI 集成</code></pre></div>
+<p>初期无需深入学习它，但如果学习者的前端是 React / Next.js，它会非常相关。</p>
+<p>需要知道它解决的是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>怎么让 AI 能自然进入 Web App 的前端体验</code></pre></div>
+<p>不属于本节重点：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>完整 AI 后端架构</code></pre></div>
+<hr>
+<h3 id="3-2-llamaindex-rag-knowledge-memory-参考">3.2 LlamaIndex：RAG / Knowledge / Memory 参考</h3>
+<p>适合理解：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>文档加载
+文本切块
+Embedding
+向量检索
+Query Engine
+Agent Memory</code></pre></div>
+<p>它是学习者学习 RAG 和 Knowledge Base 的重要参考。</p>
+<p>学习重点应放在以下结构，而非具体 API 用法：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>知识库从文档到回答，中间要经过哪些环节</code></pre></div>
+<hr>
+<h3 id="3-3-langgraph-workflow-agent-state-durable-execution">3.3 LangGraph：Workflow / Agent / State / Durable Execution</h3>
+<p>适合理解：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>State
+Node
+Edge
+Graph
+Checkpoint
+Human-in-the-loop
+Durable Execution
+Long-running agent</code></pre></div>
+<p>学习重点应放在背后的工程结构，具体语法可后置。</p>
+<p>它代表的是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用图和状态机管理复杂 AI 工作流</code></pre></div>
+<p>这比“多个 Agent 互相聊天”更重要。</p>
+<hr>
+<h3 id="3-4-openai-agents-sdk-agent-tool-guardrails-tracing-的整体参考">3.4 OpenAI Agents SDK：Agent、Tool、Guardrails、Tracing 的整体参考</h3>
+<p>OpenAI Agents SDK 的价值在于用于观察一个官方 Agent 框架如何组织：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Agent
+Tool
+Handoff
+Guardrails
+Tracing
+Human review</code></pre></div>
+<p>它适合作为理解 Harness 的参考。</p>
+<p>需要关注：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>一次 agent run 中发生了什么？
+工具如何调用？
+guardrails 放在哪里？
+trace 记录了什么？</code></pre></div>
+<hr>
+<h3 id="3-5-pydantic-ai-python-侧-production-grade-agent-workflow-参考">3.5 Pydantic AI：Python 侧 production-grade Agent / Workflow 参考</h3>
+<p>Pydantic AI 官方定位是用于构建 production-grade Generative AI applications and workflows 的 Python agent framework。</p>
+<p>它对学习者有两个学习价值：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 理解 Python AI 后端如何组织 agent / tool / structured output
+2. 理解类型校验、结构化输出、评测、可观测性如何进入 AI 工程</code></pre></div>
+<p>如果未来走 Python AI 服务路线，它值得关注。</p>
+<hr>
+<h3 id="3-6-mem0-letta-zep-memory-参考">3.6 Mem0 / Letta / Zep：Memory 参考</h3>
+<p>这类工具的首要价值不在于立即接入。</p>
+<p>它们更适合理解：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Memory 与聊天记录存在明确边界
+记忆需要写入策略
+记忆需要检索策略
+记忆需要更新和删除
+记忆可能需要图谱结构
+记忆需要安全和评测</code></pre></div>
+<p>学习顺序应该是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>先学 Memory 类型与原则
+再看 Mem0 / Letta / Zep 各自怎么实现</code></pre></div>
+<hr>
+<h3 id="3-7-braintrust-phoenix-langsmith-openai-evals-评测观测参考">3.7 Braintrust / Phoenix / LangSmith / OpenAI Evals：评测观测参考</h3>
+<p>这些工具用于回答：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>模型为什么这么答？
+这次用了什么上下文？
+工具调用是否成功？
+新版本是否比旧版本更好？
+线上失败案例怎么转成测试集？</code></pre></div>
+<p>这类工具在 Demo 阶段优先级较低，但对上线后的持续改进非常关键。</p>
+<hr>
+<h3 id="4-框架选择的第一性原理">4. 框架选择的第一性原理</h3>
+<p>框架选型应围绕 7 个问题展开：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 它解决的是我现在的问题吗？
+2. 它是核心链路还是辅助链路？
+3. 它会不会增加过多复杂度？
+4. 团队能不能维护？
+5. 它是否有清晰文档和活跃社区？
+6. 它是否容易替换？
+7. 它是否让系统更可控，还是更不可控？</code></pre></div>
+<hr>
+<h3 id="5-常见错误">5. 常见错误</h3>
+<div class="table-wrap"><table><thead><tr><th>错误</th><th>正确判断</th></tr></thead><tbody><tr><td>看到框架火就接</td><td>先判断底层问题是否真的存在</td></tr><tr><td>将 LangGraph  作为万能 Agent 工具</td><td>LangGraph 更核心的是状态、图、可恢复执行</td></tr><tr><td>一上来就多智能体</td><td>先 Workflow，再 Agent，再 Multi-agent</td></tr><tr><td>Memory 直接接工具</td><td>先定义记忆策略，再选实现</td></tr><tr><td>前端 AI SDK 代替后端架构</td><td>前端 SDK 解决体验，不解决全部后端控制</td></tr><tr><td>没有 eval 就换模型</td><td>先建立评测集，再比较模型</td></tr><tr><td>所有东西都用一个框架</td><td>真实系统通常是多个轻量模块组合</td></tr></tbody></table></div>
+<hr>
+<h3 id="6-面向学习目标的优先级">6. 面向学习目标的优先级</h3>
+<h3 id="第一优先级-必须理解底层">第一优先级：必须理解底层</h3>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>API
+Database
+LLM API
+Prompt
+Structured Output
+Context
+RAG
+Memory
+Tool Calling
+Workflow
+Agent
+Harness
+Guardrails
+Evals
+Tracing
+Deployment</code></pre></div>
+<h3 id="第二优先级-重点实现参考">第二优先级：重点实现参考</h3>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>LangGraph
+OpenAI Agents SDK
+LlamaIndex
+Vercel AI SDK
+Mem0 / Letta / Zep
+Pydantic AI
+LangSmith / OpenAI Evals</code></pre></div>
+<h3 id="第三优先级-了解即可">第三优先级：了解即可</h3>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>CrewAI
+Agno
+Google ADK
+Haystack
+Braintrust
+Phoenix
+CopilotKit
+assistant-ui</code></pre></div>
+<p>这些内容有价值，但当前阶段应避免被细节打散。</p>
+<hr>
+<h3 id="7-参考资料">7. 参考资料</h3>
+<ul><li>OpenAI｜Agents SDK  </li></ul>
+<p>https://developers.openai.com/api/docs/guides/agents</p>
+<ul><li>OpenAI｜Tracing - Agents SDK  </li></ul>
+<p>https://openai.github.io/openai-agents-python/tracing/</p>
+<ul><li>Pydantic AI｜Overview  </li></ul>
+<p>https://pydantic.dev/docs/ai/overview/</p>
+<ul><li>Vercel AI SDK｜Introduction  </li></ul>
+<p>https://ai-sdk.dev/docs/introduction</p>
+<ul><li>OpenAI｜Production best practices  </li></ul>
+<p>https://developers.openai.com/api/docs/guides/production-best-practices</p>
+<hr>
+<h3 id="8-学习产出">8. 学习产出</h3>
+<p>请完成一张表：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>底层知识点 | 我是否理解 | 可能参考框架 | 我现在是否需要</code></pre></div>
+<p>建议先填这些：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>RAG
+Memory
+Tool Calling
+Workflow
+Agent
+Harness
+Guardrails
+Evals
+Observability
+Deployment
+Frontend AI UI</code></pre></div>
+<p>目标是建立以下选型判断：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>我现在缺的是底层理解，还是工具实现？</code></pre></div>
+<hr>
+<h3 id="收官复盘">收官复盘</h3>
+<h3 id="1-这-20-课到底建立了什么？">1. 这 20 课到底建立了什么？</h3>
+<p>本阶段需要建立以下主线：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>普通软件系统
+→ AI 模型接入
+→ 上下文与知识
+→ 记忆与工具
+→ Workflow / Agent
+→ Harness 控制
+→ 安全、评测、观测
+→ 上线与技术选型</code></pre></div>
+<p>换成真实系统就是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户输入
+→ 前端
+→ API
+→ 后端
+→ Harness
+→ Context
+→ RAG / Memory / Tool
+→ Model Routing
+→ LLM
+→ Guardrails
+→ 返回
+→ Logs / Tracing / Evals
+→ 持续优化</code></pre></div>
+<hr>
+<h3 id="2-当前阶段应该具备的-8-个判断">2. 当前阶段应该具备的 8 个判断</h3>
+<h3 id="判断-1-ai-app-不能简化为“前端-+-模型-api”">判断 1：AI App 不能简化为“前端 + 模型 API”</h3>
+<p>它至少需要：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户系统
+后端接口
+数据库
+模型调用
+上下文组装
+知识库
+记忆系统
+工具调用
+安全控制
+日志评测
+部署运维</code></pre></div>
+<hr>
+<h3 id="判断-2-prompt-只是-ai-工程的一部分">判断 2：Prompt 只是 AI 工程的一部分</h3>
+<p>Prompt 只是其中一层。</p>
+<p>真正稳定的 AI 系统需要：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Prompt
++ Context
++ Structured Output
++ RAG
++ Memory
++ Tool
++ Guardrails
++ Evals
++ Observability</code></pre></div>
+<hr>
+<h3 id="判断-3-context-比-prompt-更接近系统能力">判断 3：Context 比 Prompt 更接近系统能力</h3>
+<p>Prompt 是“怎么做”。</p>
+<p>Context 是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>这一次让模型看到什么
+不让模型看到什么
+哪些信息更重要
+哪些历史应该压缩
+哪些记忆应该注入
+哪些知识应该检索</code></pre></div>
+<hr>
+<h3 id="判断-4-rag-memory-database-存在明确工程边界">判断 4：RAG、Memory、Database 存在明确工程边界</h3>
+<div class="table-wrap"><table><thead><tr><th>概念</th><th>解决什么</th></tr></thead><tbody><tr><td>Database</td><td>存确定性业务数据</td></tr><tr><td>RAG</td><td>查外部知识</td></tr><tr><td>Memory</td><td>维护用户长期状态</td></tr><tr><td>Context</td><td>本次模型调用看到的信息</td></tr><tr><td>Tool</td><td>执行外部动作</td></tr></tbody></table></div>
+<hr>
+<h3 id="判断-5-workflow-优先-agent-后置">判断 5：Workflow 优先，Agent 后置</h3>
+<p>能用固定流程解决的，不要一上来 Agent。</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>高风险 / 标准化任务 → Workflow
+开放探索 / 多步骤动态任务 → Agent
+真实产品 → Hybrid</code></pre></div>
+<hr>
+<h3 id="判断-6-harness-是-ai-产品后端的控制中枢">判断 6：Harness 是 AI 产品后端的控制中枢</h3>
+<p>Harness 要决定：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>任务类型
+风险等级
+上下文
+模型
+工具
+记忆
+安全
+降级
+日志
+评测</code></pre></div>
+<hr>
+<h3 id="判断-7-evals-和-observability-是上线后的生命线">判断 7：Evals 和 Observability 是上线后的生命线</h3>
+<p>没有 Evals：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>不知道新版本是否变好
+不知道模型切换是否有效
+不知道 Prompt 修改是否出问题</code></pre></div>
+<p>没有 Observability：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>不知道一次错误是模型问题、上下文问题、RAG 问题、记忆问题还是工具问题</code></pre></div>
+<hr>
+<h3 id="判断-8-框架只是实现方式-并非知识本体">判断 8：框架只是实现方式，并非知识本体</h3>
+<p>学习者应当先问：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>我到底要解决什么底层问题？</code></pre></div>
+<p>再问：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>哪个框架适合解决？</code></pre></div>
+<p>不要反过来。</p>
+<hr>
+<h3 id="3-最终知识地图压缩版">3. 最终知识地图压缩版</h3>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>AI 应用工程
+├─ 基础开发
+│  ├─ JS / TS / Python
+│  ├─ React / Node / Next / Vite
+│  ├─ API / Server
+│  └─ Git / npm / package.json
+│
+├─ 普通后端
+│  ├─ Auth
+│  ├─ Database
+│  ├─ Storage
+│  ├─ Queue
+│  ├─ Cache
+│  └─ Deployment
+│
+├─ 模型交互
+│  ├─ LLM API
+│  ├─ Messages
+│  ├─ Tokens
+│  ├─ Streaming
+│  ├─ Prompt
+│  └─ Structured Output
+│
+├─ 上下文与知识
+│  ├─ Context Engineering
+│  ├─ RAG
+│  ├─ Embedding
+│  ├─ Vector Database
+│  └─ Knowledge Base
+│
+├─ 长期状态
+│  ├─ Short-term Memory
+│  ├─ Long-term Memory
+│  ├─ User Profile
+│  ├─ Event Memory
+│  └─ Graph Memory
+│
+├─ 执行能力
+│  ├─ Tool Calling
+│  ├─ MCP
+│  ├─ Workflow
+│  ├─ Agent
+│  └─ Multi-agent
+│
+├─ Harness 控制层
+│  ├─ Task Classification
+│  ├─ Context Assembly
+│  ├─ Model Routing
+│  ├─ Tool Permission
+│  ├─ Memory Policy
+│  ├─ Guardrails
+│  └─ Fallback
+│
+├─ 质量与安全
+│  ├─ Safety
+│  ├─ Evals
+│  ├─ Tracing
+│  ├─ Logs
+│  └─ Observability
+│
+└─ 生产化
+   ├─ LLMOps
+   ├─ Monitoring
+   ├─ Cost Control
+   ├─ Rate Limit
+   ├─ Rollback
+   └─ Versioning</code></pre></div>
+<hr>
+<h3 id="4-下一阶段学习者应当做的-5-个动作">4. 下一阶段学习者应当做的 5 个动作</h3>
+<h3 id="动作-1-回看自己的三张图">动作 1：回看自己的三张图</h3>
+<p>用现在的知识重新标注：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>哪些已经理解
+哪些还模糊
+哪些和项目最相关
+哪些暂时不用深学</code></pre></div>
+<hr>
+<h3 id="动作-2-整理一个“项目后端问题清单”">动作 2：整理一个“项目后端问题清单”</h3>
+<p>不要直接设计方案，先列问题：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户数据怎么存？
+对话怎么存？
+记忆怎么写入？
+知识库要不要做？
+报告图片怎么处理？
+AI 调用日志怎么记录？
+哪些场景需要 Guardrails？
+哪些任务需要 Workflow？
+哪些任务可能需要 Agent？
+上线最小后端是什么？</code></pre></div>
+<hr>
+<h3 id="动作-3-做一个“最小-ai-后端架构图”">动作 3：做一个“最小 AI 后端架构图”</h3>
+<p>只画最小版本：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>Frontend
+→ API Server
+→ Database
+→ LLM API
+→ Logs</code></pre></div>
+<p>再逐步加：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>RAG
+Memory
+Tool
+Harness
+Evals
+Queue</code></pre></div>
+<hr>
+<h3 id="动作-4-用-codex-做项目结构体检">动作 4：用 Codex 做项目结构体检</h3>
+<p>让 Codex 输出：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>当前项目技术栈
+目录结构
+前端入口
+页面结构
+是否已有 API
+是否已有后端
+是否已有数据库
+构建方式
+部署方式
+风险点</code></pre></div>
+<hr>
+<h3 id="动作-5-决定下一阶段学习-实战方向">动作 5：决定下一阶段学习 / 实战方向</h3>
+<p>可以进入三条线之一：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>A. 继续深入 AI 后端架构设计
+B. 开始项目工程体检与后端最小方案
+C. 深入某个模块：Memory / RAG / Harness / Evals</code></pre></div>
+<p>我的建议：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>先做 B：项目工程体检
+再做 A：最小后端架构
+最后按需要深入 C</code></pre></div>
+<hr>
+<h3 id="5-完课自检问题">5. 完课自检问题</h3>
+<p>能够回答这些，说明第一阶段达标：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. AI App 和普通 App 最大差异是什么？
+2. Prompt、Context、RAG、Memory 的边界是什么？
+3. Harness 解决什么问题？
+4. 为什么 Workflow 要优先于 Agent？
+5. Memory 为什么并非聊天记录？
+6. Tool Calling 为什么必须有权限和参数校验？
+7. Guardrails 应该放在哪些节点？
+8. Evals 如何把失败案例变成测试集？
+9. Tracing 能帮助定位哪些问题？
+10. 上线 AI App 最容易忽视的工程问题是什么？
+11. 框架和底层知识是什么关系？
+12. 学习者的项目下一步最应该先体检什么？</code></pre></div>
+<hr>
+<h2 id="结语">结语</h2>
+<p>这 20 课的目标是让学习者具备：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>能看懂
+能判断
+能提问
+能拆解
+能指导
+能用 AI 编程工具执行</code></pre></div>
+<p>下一步不建议继续泛泛学习。 应该把这套知识用到学习者的真实项目上，先做一次 <strong>项目工程体检</strong>，再决定最小后端架构。</p>
+    </article>
+    <nav class="bottom-nav"><a href="lesson-19.html">上一课</a><a href="../index.html">返回课程首页</a><a href="../index.html">下一课</a></nav>
+  </main>
+  <aside class="toc-panel"><p>本课目录</p><a class="toc-link level-3" href="#1-知识树定位">1. 知识树定位</a>
+<a class="toc-link level-3" href="#2-主流实现参考总表">2. 主流实现参考总表</a>
+<a class="toc-link level-3" href="#3-不同工具在知识结构里的位置">3. 不同工具在知识结构里的位置</a>
+<a class="toc-link level-3" href="#3-1-vercel-ai-sdk-前端-ai-体验-+-typescript-ai-调用">3.1 Vercel AI SDK：前端 AI 体验 + TypeScript AI 调用</a>
+<a class="toc-link level-3" href="#3-2-llamaindex-rag-knowledge-memory-参考">3.2 LlamaIndex：RAG / Knowledge / Memory 参考</a>
+<a class="toc-link level-3" href="#3-3-langgraph-workflow-agent-state-durable-execution">3.3 LangGraph：Workflow / Agent / State / Durable Execution</a>
+<a class="toc-link level-3" href="#3-4-openai-agents-sdk-agent-tool-guardrails-tracing-的整体参考">3.4 OpenAI Agents SDK：Agent、Tool、Guardrails、Tracing 的整体参考</a>
+<a class="toc-link level-3" href="#3-5-pydantic-ai-python-侧-production-grade-agent-workflow-参考">3.5 Pydantic AI：Python 侧 production-grade Agent / Workflow 参考</a>
+<a class="toc-link level-3" href="#3-6-mem0-letta-zep-memory-参考">3.6 Mem0 / Letta / Zep：Memory 参考</a>
+<a class="toc-link level-3" href="#3-7-braintrust-phoenix-langsmith-openai-evals-评测观测参考">3.7 Braintrust / Phoenix / LangSmith / OpenAI Evals：评测观测参考</a>
+<a class="toc-link level-3" href="#4-框架选择的第一性原理">4. 框架选择的第一性原理</a>
+<a class="toc-link level-3" href="#5-常见错误">5. 常见错误</a>
+<a class="toc-link level-3" href="#6-面向学习目标的优先级">6. 面向学习目标的优先级</a>
+<a class="toc-link level-3" href="#第一优先级-必须理解底层">第一优先级：必须理解底层</a>
+<a class="toc-link level-3" href="#第二优先级-重点实现参考">第二优先级：重点实现参考</a>
+<a class="toc-link level-3" href="#第三优先级-了解即可">第三优先级：了解即可</a>
+<a class="toc-link level-3" href="#7-参考资料">7. 参考资料</a>
+<a class="toc-link level-3" href="#8-学习产出">8. 学习产出</a>
+<a class="toc-link level-3" href="#收官复盘">收官复盘</a>
+<a class="toc-link level-3" href="#1-这-20-课到底建立了什么？">1. 这 20 课到底建立了什么？</a>
+<a class="toc-link level-3" href="#2-当前阶段应该具备的-8-个判断">2. 当前阶段应该具备的 8 个判断</a>
+<a class="toc-link level-3" href="#判断-1-ai-app-不能简化为“前端-+-模型-api”">判断 1：AI App 不能简化为“前端 + 模型 API”</a>
+<a class="toc-link level-3" href="#判断-2-prompt-只是-ai-工程的一部分">判断 2：Prompt 只是 AI 工程的一部分</a>
+<a class="toc-link level-3" href="#判断-3-context-比-prompt-更接近系统能力">判断 3：Context 比 Prompt 更接近系统能力</a>
+<a class="toc-link level-3" href="#判断-4-rag-memory-database-存在明确工程边界">判断 4：RAG、Memory、Database 存在明确工程边界</a>
+<a class="toc-link level-3" href="#判断-5-workflow-优先-agent-后置">判断 5：Workflow 优先，Agent 后置</a>
+<a class="toc-link level-3" href="#判断-6-harness-是-ai-产品后端的控制中枢">判断 6：Harness 是 AI 产品后端的控制中枢</a>
+<a class="toc-link level-3" href="#判断-7-evals-和-observability-是上线后的生命线">判断 7：Evals 和 Observability 是上线后的生命线</a>
+<a class="toc-link level-3" href="#判断-8-框架只是实现方式-并非知识本体">判断 8：框架只是实现方式，并非知识本体</a>
+<a class="toc-link level-3" href="#3-最终知识地图压缩版">3. 最终知识地图压缩版</a>
+<a class="toc-link level-3" href="#4-下一阶段学习者应当做的-5-个动作">4. 下一阶段学习者应当做的 5 个动作</a>
+<a class="toc-link level-3" href="#动作-1-回看自己的三张图">动作 1：回看自己的三张图</a>
+<a class="toc-link level-3" href="#动作-2-整理一个“项目后端问题清单”">动作 2：整理一个“项目后端问题清单”</a>
+<a class="toc-link level-3" href="#动作-3-做一个“最小-ai-后端架构图”">动作 3：做一个“最小 AI 后端架构图”</a>
+<a class="toc-link level-3" href="#动作-4-用-codex-做项目结构体检">动作 4：用 Codex 做项目结构体检</a>
+<a class="toc-link level-3" href="#动作-5-决定下一阶段学习-实战方向">动作 5：决定下一阶段学习 / 实战方向</a>
+<a class="toc-link level-3" href="#5-完课自检问题">5. 完课自检问题</a>
+<a class="toc-link level-2" href="#结语">结语</a></aside>
+</div>
+<script src="../assets/site.js"></script>
+</body>
+</html>

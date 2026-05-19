@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 06 课｜LLM API 基础：模型如何被产品调用</title>
+  <link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="lesson-page">
+<div class="reader-shell" data-page="lesson" data-lesson="6">
+  <aside class="course-sidebar">
+    <a class="brand" href="../index.html"><span>AI</span><strong>应用工程课程</strong></a>
+    <div class="sidebar-section"><p>课程导航</p><a class="lesson-link" href="lesson-01.html" data-lesson="1"><span>01</span><strong>AI App 和普通 App 的工程差异</strong></a>
+<a class="lesson-link" href="lesson-02.html" data-lesson="2"><span>02</span><strong>基础开发词典：JS、TS、Node、React、Python、npm</strong></a>
+<a class="lesson-link" href="lesson-03.html" data-lesson="3"><span>03</span><strong>普通后端基础：API、Server、Database、Auth、Storage、Queue、Logs</strong></a>
+<a class="lesson-link" href="lesson-04.html" data-lesson="4"><span>04</span><strong>数据库与 AI 产品数据结构</strong></a>
+<a class="lesson-link" href="lesson-05.html" data-lesson="5"><span>05</span><strong>第 1 周总复盘：从普通 App 到 AI App 后端总图</strong></a>
+<a class="lesson-link active" href="lesson-06.html" data-lesson="6"><span>06</span><strong>LLM API 基础：模型如何被产品调用</strong></a>
+<a class="lesson-link" href="lesson-07.html" data-lesson="7"><span>07</span><strong>Prompt Engineering：模型任务协议设计</strong></a>
+<a class="lesson-link" href="lesson-08.html" data-lesson="8"><span>08</span><strong>Structured Output：可被程序使用的结构化结果</strong></a>
+<a class="lesson-link" href="lesson-09.html" data-lesson="9"><span>09</span><strong>Context Engineering：模型本次可见信息的组织方法</strong></a>
+<a class="lesson-link" href="lesson-10.html" data-lesson="10"><span>10</span><strong>RAG / Knowledge Base：让模型使用可靠外部知识</strong></a>
+<a class="lesson-link" href="lesson-11.html" data-lesson="11"><span>11</span><strong>Memory 系统：面向未来任务的状态管理</strong></a>
+<a class="lesson-link" href="lesson-12.html" data-lesson="12"><span>12</span><strong>Tool Calling / Function Calling / MCP：从语言输出到系统动作</strong></a>
+<a class="lesson-link" href="lesson-13.html" data-lesson="13"><span>13</span><strong>Workflow vs Agent：AI 系统编排方式的边界</strong></a>
+<a class="lesson-link" href="lesson-14.html" data-lesson="14"><span>14</span><strong>Harness 工程：把模型纳入可控运行系统</strong></a>
+<a class="lesson-link" href="lesson-15.html" data-lesson="15"><span>15</span><strong>Model Selection / Model Routing：按任务选择合适模型</strong></a>
+<a class="lesson-link" href="lesson-16.html" data-lesson="16"><span>16</span><strong>Guardrails / Safety：AI 系统安全护栏</strong></a>
+<a class="lesson-link" href="lesson-17.html" data-lesson="17"><span>17</span><strong>Evals / Evaluation：将失败案例沉淀为测试集</strong></a>
+<a class="lesson-link" href="lesson-18.html" data-lesson="18"><span>18</span><strong>Observability / Tracing / Logs：让 AI 行为可回放、可解释、可定位</strong></a>
+<a class="lesson-link" href="lesson-19.html" data-lesson="19"><span>19</span><strong>Deployment / LLMOps：从 Demo 到可上线系统</strong></a>
+<a class="lesson-link" href="lesson-20.html" data-lesson="20"><span>20</span><strong>主流框架与实现参考：框架作为工程实现方式</strong></a></div>
+  </aside>
+  <main class="lesson-main">
+    <nav class="topbar">
+      <a href="../index.html">首页</a>
+      <a href="lesson-05.html">上一课</a>
+      <a href="lesson-07.html">下一课</a>
+      <button class="complete-btn" type="button" data-complete-toggle="6">标记完成</button>
+    </nav>
+    <header class="lesson-hero">
+      <div class="lesson-kicker">第 06 课 · Week 2</div>
+      <h1>LLM API 基础：模型如何被产品调用</h1>
+      <p>理解模型调用的输入、输出、参数和流式响应，为 Prompt 与 Context 学习打底。</p>
+      <div class="tag-row"><span>LLM API</span><span>Messages</span><span>Tokens</span></div>
+    </header>
+    <section class="lesson-tools">
+      <label><span>本课搜索</span><input type="search" class="page-search" placeholder="输入关键词，定位正文内容"></label>
+      <div class="font-controls" aria-label="字体大小"><button type="button" data-font="smaller">A-</button><button type="button" data-font="larger">A+</button></div>
+    </section>
+    <article class="lesson-content" id="content">
+      <section class="classroom-block">
+        <h2>课程目标</h2>
+        <p>理解模型调用的输入、输出、参数和流式响应，为 Prompt 与 Context 学习打底。</p>
+      </section>
+<h3 id="1-本课问题域？">1. 本课问题域？</h3>
+<p>学习者可能先把大模型理解成：</p>
+<blockquote><p>一个聊天框。</p></blockquote>
+<p>但在产品里，大模型更准确地说是：</p>
+<blockquote><p><strong>一个可以被后端调用的智能能力接口。</strong></p></blockquote>
+<p>产品调用模型的方式，是由后端将输入发送给模型 API，并把模型输出处理成产品流程的一部分。</p>
+<hr>
+<h3 id="2-llm-api-是什么？">2. LLM API 是什么？</h3>
+<p>API 是系统之间沟通的入口。</p>
+<p>LLM API 就是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>学习者的后端
+→ 把用户输入、系统指令、上下文、参数发给模型服务
+→ 模型返回文本、结构化数据或工具调用请求
+→ 学习者的后端继续处理</code></pre></div>
+<p>可以把 LLM API 想成一个智能外部服务。</p>
+<p>普通 API 可能是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>查询天气
+查询订单
+发送短信
+上传文件</code></pre></div>
+<p>LLM API 是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>理解用户输入
+生成回复
+总结文本
+提取结构化信息
+判断任务类型
+调用工具
+解释图片
+生成 JSON</code></pre></div>
+<hr>
+<h3 id="3-一次模型调用的基本组成">3. 一次模型调用的基本组成</h3>
+<p>一次 LLM API 调用通常包含：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>model：用哪个模型
+input / messages：给模型什么内容
+instructions / system：系统级要求
+tools：模型可以调用哪些工具
+temperature：输出随机性
+max output tokens：最多输出多长
+stream：是否流式输出
+response format：是否要求结构化输出</code></pre></div>
+<p>先不用记所有参数，先记四个核心：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>模型是谁
+输入是什么
+上下文是什么
+输出要什么格式</code></pre></div>
+<hr>
+<h3 id="4-messages-是什么？">4. Messages 是什么？</h3>
+<p>在聊天型模型里，输入经常被组织成 messages。</p>
+<p>一个 messages 通常长这样：</p>
+<div class="code-block"><div class="code-label">json</div><button class="copy-code" type="button">复制</button><pre><code>[
+  {
+    &quot;role&quot;: &quot;system&quot;,
+    &quot;content&quot;: &quot;你是一个专业、克制、准确的 AI 助手。&quot;
+  },
+  {
+    &quot;role&quot;: &quot;user&quot;,
+    &quot;content&quot;: &quot;帮我解释一下这份报告。&quot;
+  },
+  {
+    &quot;role&quot;: &quot;assistant&quot;,
+    &quot;content&quot;: &quot;可以，我先帮助学习者看关键指标。&quot;
+  },
+  {
+    &quot;role&quot;: &quot;user&quot;,
+    &quot;content&quot;: &quot;这个指标偏高严重吗？&quot;
+  }
+]</code></pre></div>
+<p>需要理解 role：</p>
+<div class="table-wrap"><table><thead><tr><th>role</th><th>含义</th></tr></thead><tbody><tr><td>system</td><td>系统给模型的规则</td></tr><tr><td>user</td><td>用户输入</td></tr><tr><td>assistant</td><td>模型之前的回复</td></tr><tr><td>tool</td><td>工具调用返回的结果</td></tr></tbody></table></div>
+<p>系统传给模型的是经过整理的一组上下文，而非最后一句用户输入。</p>
+<hr>
+<h3 id="5-system-user-assistant-的区别">5. System / User / Assistant 的区别</h3>
+<h3 id="5-1-system">5.1 System</h3>
+<p>系统级规则。</p>
+<p>例如：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>你不能替代医生诊断。
+回答必须简洁。
+遇到危险信号要建议用户及时就医。
+输出必须符合 JSON Schema。</code></pre></div>
+<p>System 通常由产品和工程团队控制，用户看不到。</p>
+<hr>
+<h3 id="5-2-user">5.2 User</h3>
+<p>用户输入。</p>
+<p>例如：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>我有点担心这个指标。
+帮我总结这个报告。
+这段话怎么跟家人说？</code></pre></div>
+<p>User 是用户直接说的话。</p>
+<hr>
+<h3 id="5-3-assistant">5.3 Assistant</h3>
+<p>模型之前生成的内容。</p>
+<p>它用于保持上下文连续。</p>
+<p>例如：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>上一轮 AI 已经解释过一个指标
+这一轮用户追问“那我需要注意什么？”
+模型需要知道“那”指什么</code></pre></div>
+<p>所以历史 assistant 消息有时要带进去，有时要裁剪。</p>
+<p>这就进入后面的 Context Engineering。</p>
+<hr>
+<h3 id="6-token-是什么？">6. Token 是什么？</h3>
+<p>Token 可以先理解成模型处理文本的基本单位。</p>
+<p>它既不严格等于字，也不严格等于词。</p>
+<p>当前阶段只需要知道：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>输入越长，token 越多
+输出越长，token 越多
+token 越多，成本越高
+token 越多，速度可能越慢
+模型上下文窗口有上限</code></pre></div>
+<p>所以 AI 产品不能把所有历史对话都塞给模型。 这就是为什么需要 Context Engineering。</p>
+<hr>
+<h3 id="7-temperature-是什么？">7. Temperature 是什么？</h3>
+<p>Temperature 可以理解为输出随机性。</p>
+<div class="table-wrap"><table><thead><tr><th>Temperature</th><th>效果</th></tr></thead><tbody><tr><td>低</td><td>更稳定、更保守、更一致</td></tr><tr><td>高</td><td>更发散、更有创意、更不可控</td></tr></tbody></table></div>
+<p>对产品来说：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>高风险、解释类、结构化任务 → 低 temperature
+创意写作、头脑风暴 → 可以稍高</code></pre></div>
+<p>无需记忆具体数字，先掌握判断逻辑：</p>
+<blockquote><p>任务越需要稳定，随机性越低。</p></blockquote>
+<hr>
+<h3 id="8-streaming-是什么？">8. Streaming 是什么？</h3>
+<p>Streaming 是流式输出。</p>
+<p>Streaming 的特点是边生成边返回，而并非等待完整结果后一次性返回。</p>
+<p>用户体验上就是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>AI 一边思考一边逐步显示内容</code></pre></div>
+<p>为什么重要？</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>降低等待感
+增强对话流畅度
+适合聊天和陪伴场景
+不一定适合所有后台任务</code></pre></div>
+<p>例如报告生成可以等一会儿，但聊天页最好流式输出。</p>
+<hr>
+<h3 id="9-multimodal-是什么？">9. Multimodal 是什么？</h3>
+<p>Multimodal 多模态，指模型能处理不止文本。</p>
+<p>包括：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>文本
+图片
+语音
+PDF / 文档
+视频帧</code></pre></div>
+<p>在 AI 产品里，多模态意味着用户可以：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>拍照上传报告
+发语音
+上传截图
+让 AI 看图解释</code></pre></div>
+<p>但注意：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>多模态识别结果不等于专业诊断
+OCR 识别可能错
+图片理解可能漏
+高风险场景必须有边界</code></pre></div>
+<hr>
+<h3 id="10-少量代码-模型调用大概长什么样？">10. 少量代码：模型调用大概长什么样？</h3>
+<p>下面的代码用于阅读结构，不要求编写。</p>
+<div class="code-block"><div class="code-label">ts</div><button class="copy-code" type="button">复制</button><pre><code>const response = await client.responses.create({
+  model: &quot;gpt-5.5&quot;,
+  input: [
+    {
+      role: &quot;system&quot;,
+      content: &quot;你是一个专业、克制、准确的 AI 助手。&quot;
+    },
+    {
+      role: &quot;user&quot;,
+      content: &quot;帮我解释一下这份报告。&quot;
+    }
+  ]
+})</code></pre></div>
+<p>只需看懂：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>model：使用哪个模型
+input：传给模型什么内容
+role: system：系统规则
+role: user：用户问题
+response：模型返回结果</code></pre></div>
+<hr>
+<h3 id="11-llm-api-在真实系统中的位置">11. LLM API 在真实系统中的位置</h3>
+<p>一次聊天请求可能是：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>1. 前端收集用户输入
+2. 前端发请求到后端 /api/chat
+3. 后端读取用户信息
+4. 后端组装 messages
+5. 后端选择模型
+6. 后端调用 LLM API
+7. 模型返回回复
+8. 后端做安全检查
+9. 后端保存 Message 和 Model Run
+10. 后端把结果返回前端</code></pre></div>
+<p>LLM API 是产品链路中的一环，不等同于完整产品。</p>
+<hr>
+<h3 id="12-llm-api-的三种常见输出">12. LLM API 的三种常见输出</h3>
+<h3 id="12-1-文本输出">12.1 文本输出</h3>
+<p>最常见：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>用户问一句
+AI 回一段话</code></pre></div>
+<p>适合：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>普通对话
+解释
+总结
+安抚
+建议</code></pre></div>
+<hr>
+<h3 id="12-2-结构化输出">12.2 结构化输出</h3>
+<p>返回 JSON。</p>
+<p>适合：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>任务分类
+风险等级
+字段提取
+生成卡片
+创建提醒
+生成数据库记录</code></pre></div>
+<p>例如：</p>
+<div class="code-block"><div class="code-label">json</div><button class="copy-code" type="button">复制</button><pre><code>{
+  &quot;task_type&quot;: &quot;medical_question&quot;,
+  &quot;risk_level&quot;: &quot;medium&quot;,
+  &quot;should_call_tool&quot;: false,
+  &quot;reply_style&quot;: &quot;concise&quot;
+}</code></pre></div>
+<hr>
+<h3 id="12-3-工具调用请求">12.3 工具调用请求</h3>
+<p>模型不直接回答，核心是说：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>我需要调用某个工具。</code></pre></div>
+<p>例如：</p>
+<div class="code-block"><div class="code-label">json</div><button class="copy-code" type="button">复制</button><pre><code>{
+  &quot;tool_name&quot;: &quot;search_knowledge_base&quot;,
+  &quot;arguments&quot;: {
+    &quot;query&quot;: &quot;孕期胎动减少&quot;
+  }
+}</code></pre></div>
+<p>然后后端决定是否允许调用。</p>
+<hr>
+<h3 id="13-实战判断-什么时候不能直接调用模型？">13. 实战判断：什么时候不能直接调用模型？</h3>
+<p>以下场景不建议直接：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>高风险医疗
+法律/财务等高风险建议
+需要调用数据库
+需要创建提醒
+需要写入记忆
+需要生成结构化记录
+需要使用外部知识
+需要可追踪和回放</code></pre></div>
+<p>这些都应该通过 Harness 管控：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>任务识别
+上下文组装
+模型路由
+工具权限
+安全检查
+日志记录
+失败降级</code></pre></div>
+<hr>
+<h3 id="14-llm-api-和后面课程的关系">14. LLM API 和后面课程的关系</h3>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>LLM API
+├─ Prompt：怎么指挥模型
+├─ Structured Output：怎么让模型输出机器可用结果
+├─ Context：这次给模型看什么
+├─ RAG：从知识库拿什么给模型看
+├─ Memory：从用户历史拿什么给模型看
+├─ Tool Calling：模型如何请求外部动作
+├─ Harness：谁来决定以上流程
+├─ Guardrails：谁来检查风险
+└─ Evals：怎么判断效果好不好</code></pre></div>
+<p>所以第 06 课是后面所有 AI 工程内容的入口。</p>
+<hr>
+<h3 id="15-课后复盘">15. 课后复盘</h3>
+<p>请用自己的话回答：</p>
+<ol><li>为什么 LLM API 并非聊天框？</li><li>一次模型调用至少包含哪些东西？</li><li>system、user、assistant 分别是什么？</li><li>为什么 token 会影响成本和上下文？</li><li>什么任务适合 streaming？</li><li>什么任务需要 structured output？</li><li>为什么高风险任务不能直接调用模型？</li><li>LLM API 在完整 AI App 请求链路中处于哪个位置？</li></ol>
+<hr>
+<h3 id="16-参考资料">16. 参考资料</h3>
+<ul><li>OpenAI Models 官方文档：理解模型选择、输入输出能力和 Responses API  </li></ul>
+<p>https://developers.openai.com/api/docs/models</p>
+<ul><li>OpenAI Agents SDK 官方文档：理解 Agent、工具、状态与多步骤任务  </li></ul>
+<p>https://developers.openai.com/api/docs/guides/agents</p>
+<ul><li>OpenAI Structured Outputs 官方文档：理解结构化输出如何约束模型返回 JSON Schema  </li></ul>
+<p>https://developers.openai.com/api/docs/guides/structured-outputs</p>
+<hr>
+<h2 id="阶段复盘">阶段复盘</h2>
+<p>当前阶段应该建立这条主线：</p>
+<div class="code-block"><div class="code-label">text</div><button class="copy-code" type="button">复制</button><pre><code>数据库与数据结构
+→ 决定 AI 产品能长期记住什么、追踪什么、复盘什么
+第 1 周总图
+→ 决定是否能够把前端、后端、数据库、模型、Harness 连起来
+LLM API
+→ 决定是否能够理解模型在产品里如何被调用</code></pre></div>
+<p>如果第 04-06 课掌握扎实，后续进入 Prompt、Structured Output、Context、RAG 时，就不会把它们当作碎片知识点，而会知道它们都挂在完整系统链路里。</p>
+    </article>
+    <nav class="bottom-nav"><a href="lesson-05.html">上一课</a><a href="../index.html">返回课程首页</a><a href="lesson-07.html">下一课</a></nav>
+  </main>
+  <aside class="toc-panel"><p>本课目录</p><a class="toc-link level-3" href="#1-本课问题域？">1. 本课问题域？</a>
+<a class="toc-link level-3" href="#2-llm-api-是什么？">2. LLM API 是什么？</a>
+<a class="toc-link level-3" href="#3-一次模型调用的基本组成">3. 一次模型调用的基本组成</a>
+<a class="toc-link level-3" href="#4-messages-是什么？">4. Messages 是什么？</a>
+<a class="toc-link level-3" href="#5-system-user-assistant-的区别">5. System / User / Assistant 的区别</a>
+<a class="toc-link level-3" href="#5-1-system">5.1 System</a>
+<a class="toc-link level-3" href="#5-2-user">5.2 User</a>
+<a class="toc-link level-3" href="#5-3-assistant">5.3 Assistant</a>
+<a class="toc-link level-3" href="#6-token-是什么？">6. Token 是什么？</a>
+<a class="toc-link level-3" href="#7-temperature-是什么？">7. Temperature 是什么？</a>
+<a class="toc-link level-3" href="#8-streaming-是什么？">8. Streaming 是什么？</a>
+<a class="toc-link level-3" href="#9-multimodal-是什么？">9. Multimodal 是什么？</a>
+<a class="toc-link level-3" href="#10-少量代码-模型调用大概长什么样？">10. 少量代码：模型调用大概长什么样？</a>
+<a class="toc-link level-3" href="#11-llm-api-在真实系统中的位置">11. LLM API 在真实系统中的位置</a>
+<a class="toc-link level-3" href="#12-llm-api-的三种常见输出">12. LLM API 的三种常见输出</a>
+<a class="toc-link level-3" href="#12-1-文本输出">12.1 文本输出</a>
+<a class="toc-link level-3" href="#12-2-结构化输出">12.2 结构化输出</a>
+<a class="toc-link level-3" href="#12-3-工具调用请求">12.3 工具调用请求</a>
+<a class="toc-link level-3" href="#13-实战判断-什么时候不能直接调用模型？">13. 实战判断：什么时候不能直接调用模型？</a>
+<a class="toc-link level-3" href="#14-llm-api-和后面课程的关系">14. LLM API 和后面课程的关系</a>
+<a class="toc-link level-3" href="#15-课后复盘">15. 课后复盘</a>
+<a class="toc-link level-3" href="#16-参考资料">16. 参考资料</a>
+<a class="toc-link level-2" href="#阶段复盘">阶段复盘</a></aside>
+</div>
+<script src="../assets/site.js"></script>
+</body>
+</html>
